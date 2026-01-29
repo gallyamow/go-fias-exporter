@@ -41,6 +41,11 @@ func main() {
 	}
 
 	for _, f := range files {
+		if ctx.Err() != nil {
+			_, _ = fmt.Fprintln(os.Stderr, "Interrupted")
+			return
+		}
+
 		fileName := filepath.Base(f.Path)
 
 		tableName, err := sqlbuilder.ResolveTableName(fileName)
