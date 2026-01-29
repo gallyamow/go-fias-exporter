@@ -1,0 +1,37 @@
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    - govet
+    - errcheck
+    - gosimple
+    - staticcheck
+    - unused
+    - ineffassign
+    - typecheck
+    - gocyclo
+    - dupl
+    - goimports
+
+issues:
+  exclude-dirs:
+    - dist
+    - vendor
+  exclude-files:
+    - ".*_test.go"
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-rules:
+    - linters:
+        - dupl
+      text: "generated"
+
+linters-settings:
+  gocyclo:
+    min-complexity: 10
+  dupl:
+    threshold: 100
+  goimports:
+    local-prefixes: github.com/gallyamow/go-fias-exporter
