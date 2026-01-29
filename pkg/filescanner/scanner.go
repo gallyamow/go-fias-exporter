@@ -1,6 +1,7 @@
 package filescanner
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
 	"os"
@@ -21,10 +22,14 @@ type Filter struct {
 
 // ScanDir scans the directory and returns a list of files.
 // IO-bound task, no reason to use goroutines.
-func ScanDir(root string, filter Filter) ([]model.FileInfo, error) {
+func ScanDir(ctx context.Context, root string, filter Filter) ([]model.FileInfo, error) {
 	var files []model.FileInfo
 
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "skip %s: %v\n", path, err)
 			return nil
@@ -71,7 +76,7 @@ func isFileExcluded(info fs.FileInfo, filter Filter) bool {
 	ext := strings.ToLower(filepath.Ext(info.Name()))
 
 	if ext != "" {
-		if !slices.Contains(filter.IncludeExts, ext) {
+		if len(filter.IncludeExts) == 0 && !slices.Contains(filter.IncludeExts, ext) {
 			return true
 		}
 		if slices.Contains(filter.ExcludeExts, ext) {
@@ -85,7 +90,7 @@ func isFileExcluded(info fs.FileInfo, filter Filter) bool {
 func isDirExcluded(d fs.DirEntry, filter Filter) bool {
 	dir := strings.ToLower(d.Name())
 
-	if !slices.Contains(filter.IncludeDirs, dir) {
+	if len(filter.IncludeDirs) > 0 && !slices.Contains(filter.IncludeDirs, dir) {
 		return true
 	}
 

@@ -70,9 +70,10 @@ func (b *UpsertBuilder) buildOnConflict() string {
 func ResolveTableName(filename string) (string, error) {
 	base := strings.TrimSuffix(filename, filepath.Ext(filename))
 
-	re := regexp.MustCompile(`(?i)^AS_([A-Z0-9_]+?)_\d{8}`)
+	re := regexp.MustCompile(`(?i)^AS_([A-Z_]+)_\d{8}`)
 	if m := re.FindStringSubmatch(base); len(m) == 2 {
 		return strings.ToLower(m[1]), nil
 	}
+
 	return "", fmt.Errorf("cannot resolve table name from filename: %s", filename)
 }

@@ -1,6 +1,7 @@
 package itemiterator
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -20,10 +21,14 @@ func New(file io.Reader) *ItemIterator {
 	}
 }
 
-func (r *ItemIterator) Next(n int) ([]map[string]string, error) {
+func (r *ItemIterator) Next(ctx context.Context, n int) ([]map[string]string, error) {
 	var res []map[string]string
 
 	for {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+
 		tok, err := r.decoder.Token()
 		if err != nil {
 			if err == io.EOF {

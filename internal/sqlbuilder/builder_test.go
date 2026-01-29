@@ -73,6 +73,11 @@ func TestResolveTableName(t *testing.T) {
 			want:     "addr_obj",
 		},
 		{
+			name:     "addr obj division",
+			filename: "AS_ADDR_OBJ_DIVISION_20260127_36d1e18d-6acf-4755-a7b0-49d9a30a5dae.XML",
+			want:     "addr_obj_division",
+		},
+		{
 			name:     "change history",
 			filename: "AS_CHANGE_HISTORY_20250626_d1a57485-156c-4463-8a23-2328fb0f6f9d",
 			want:     "change_history",

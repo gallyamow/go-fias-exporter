@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"runtime"
 )
 
 var (
@@ -36,10 +35,8 @@ func (c *Config) String() string {
 }
 
 func ParseFlags() (*Config, error) {
-	defaultBatch := runtime.NumCPU() * 10
-
 	mode := flag.String("mode", ModeOutput, "mode output|execute")
-	batchSize := flag.Int("batch-size", defaultBatch, "batch size")
+	batchSize := flag.Int("batch-size", 1000, "batch size")
 	deltaKey := flag.Int("delta", 0, "delta key")
 	db := flag.String("db", "", "database connection string")
 

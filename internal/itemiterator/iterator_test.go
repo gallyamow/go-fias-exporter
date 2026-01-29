@@ -1,6 +1,7 @@
 package itemiterator
 
 import (
+	"context"
 	"io"
 	"strings"
 	"testing"
@@ -45,7 +46,7 @@ func TestItemIterator_Next(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			items, err := it.Next(tt.n)
+			items, err := it.Next(context.Background(), tt.n)
 
 			if tt.wantEOF {
 				if err != io.EOF {
@@ -76,7 +77,7 @@ func TestItemIterator_SkipsRootElement(t *testing.T) {
 
 	it := New(strings.NewReader(xmlData))
 
-	items, err := it.Next(1)
+	items, err := it.Next(context.Background(), 1)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -98,7 +99,7 @@ func TestItemIterator_AttributeNamesLowercased(t *testing.T) {
 
 	it := New(strings.NewReader(xmlData))
 
-	items, err := it.Next(1)
+	items, err := it.Next(context.Background(), 1)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -119,7 +120,7 @@ func TestItemIterator_EmptyDocument(t *testing.T) {
 
 	it := New(strings.NewReader(xmlData))
 
-	items, err := it.Next(1)
+	items, err := it.Next(context.Background(), 1)
 
 	if err != io.EOF {
 		t.Fatalf("expected EOF, got %v", err)
