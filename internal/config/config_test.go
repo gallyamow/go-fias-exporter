@@ -3,95 +3,124 @@ package config
 import (
 	"errors"
 	"os"
-	"runtime"
-	"strings"
 	"testing"
 )
 
-func TestParseFlags(t *testing.T) {
-	t.Run("no path", func(t *testing.T) {
-		resetFlags()
-		os.Args = []string{"cmd"}
+func TestParseFlags_OutputMode(t *testing.T) {
+	resetFlags()
+	os.Args = []string{
+		"cmd",
+		"-mode=output",
+		"-batch-size=100",
+		"-delta=5",
+		"/data/input",
+	}
 
-		_, err := ParseFlags()
-		if err == nil {
-			t.Fatal("expected error, got nil")
-		}
-		if !errors.Is(err, ErrorPathRequired) {
-			t.Fatalf("got %v, want %v", err, ErrorPathRequired)
-		}
-	})
+	cfg, err := ParseFlags()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
-	t.Run("defaults", func(t *testing.T) {
-		resetFlags()
-		os.Args = []string{"cmd", "/test"}
+	if cfg.Path != "/data/input" {
+		t.Fatalf("unexpected path: %s", cfg.Path)
+	}
 
-		cfg, err := ParseFlags()
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+	if cfg.Mode != ModeOutput {
+		t.Fatalf("unexpected mode: %s", cfg.Mode)
+	}
 
-		if cfg.Path != "/test" {
-			t.Fatalf("got Path=%v, want %v", cfg.Path, "/test")
-		}
-		if cfg.Mode != "duplicates.db" {
-			t.Fatalf("got Mode=%v, want %v", cfg.Mode, "duplicates.db")
-		}
-		wantBatch := runtime.NumCPU() * 10
-		if cfg.BatchSize != wantBatch {
-			t.Fatalf("got BatchSize=%v, want %v", cfg.BatchSize, wantBatch)
-		}
-		if cfg.Delta != 0 {
-			t.Fatalf("got Delta=%v, want %v", cfg.Delta, 0)
-		}
-		if cfg.Replace != false {
-			t.Fatalf("got Replace=%v, want %v", cfg.Replace, false)
-		}
-	})
+	if cfg.BatchSize != 100 {
+		t.Fatalf("unexpected batch size: %d", cfg.BatchSize)
+	}
 
-	t.Run("parse all flags", func(t *testing.T) {
-		resetFlags()
-		os.Args = []string{
-			"cmd",
-			"-db=custom.db",
-			"-batch-size=5",
-			"-delta=3",
-			"-replace",
-			"/my/path",
-		}
+	if cfg.Delta != 5 {
+		t.Fatalf("unexpected delta: %d", cfg.Delta)
+	}
+}
 
-		cfg, err := ParseFlags()
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+func TestParseFlags_ExecuteModeRequiresDB(t *testing.T) {
+	resetFlags()
+	os.Args = []string{
+		"cmd",
+		"-mode=execute",
+		"/data/input",
+	}
 
-		if cfg.Path != "/my/path" {
-			t.Fatalf("got Path=%v, want %v", cfg.Path, "/my/path")
-		}
-		if cfg.Mode != "custom.db" {
-			t.Fatalf("got Mode=%v, want %v", cfg.Mode, "custom.db")
-		}
-		if cfg.BatchSize != 5 {
-			t.Fatalf("got BatchSize=%v, want %v", cfg.BatchSize, 5)
-		}
-		if cfg.Delta != 3 {
-			t.Fatalf("got Delta=%v, want %v", cfg.Delta, 3)
-		}
-		if cfg.Replace != true {
-			t.Fatalf("got Replace=%v, want %v", cfg.Replace, true)
-		}
-	})
+	_, err := ParseFlags()
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+}
 
-	t.Run("invalid batch-size", func(t *testing.T) {
-		resetFlags()
-		os.Args = []string{"cmd", "-batch-size=0", "/path"}
+func TestParseFlags_ExecuteModeWithDB(t *testing.T) {
+	resetFlags()
+	os.Args = []string{
+		"cmd",
+		"-mode=execute",
+		"-db=postgres://localhost/db",
+		"/data/input",
+	}
 
-		_, err := ParseFlags()
-		if err == nil {
-			t.Fatal("expected error for invalid batch-size, got nil")
-		}
-		if !strings.Contains(err.Error(), "batch-size must be > 0") {
-			t.Fatalf("unexpected error: %v", err)
-		}
-	})
+	cfg, err := ParseFlags()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if cfg.Mode != ModeExecute {
+		t.Fatalf("unexpected mode: %s", cfg.Mode)
+	}
+}
+
+func TestParseFlags_PathRequired(t *testing.T) {
+	resetFlags()
+	os.Args = []string{
+		"cmd",
+	}
+
+	_, err := ParseFlags()
+	if !errors.Is(err, ErrorPathRequired) {
+		t.Fatalf("expected ErrorPathRequired, got %v", err)
+	}
+}
+
+func TestParseFlags_InvalidMode(t *testing.T) {
+	resetFlags()
+	os.Args = []string{
+		"cmd",
+		"-mode=unknown",
+		"/data/input",
+	}
+
+	_, err := ParseFlags()
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+}
+
+func TestParseFlags_InvalidBatchSize(t *testing.T) {
+	resetFlags()
+	os.Args = []string{
+		"cmd",
+		"-batch-size=0",
+		"/data/input",
+	}
+
+	_, err := ParseFlags()
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+}
+
+func TestParseFlags_InvalidDelta(t *testing.T) {
+	resetFlags()
+	os.Args = []string{
+		"cmd",
+		"-delta=-1",
+		"/data/input",
+	}
+
+	_, err := ParseFlags()
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
 }

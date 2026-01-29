@@ -13,6 +13,7 @@ fias-exporter [flags] <path>
 | `--mode`       | `output` | "output" - to print result in console, "execute" - to execute resulting queries |
 | `--batch-size` | `1000`   | Minimum size of batch                                                           |
 | `--delta`      | `nil`    | Delta key                                                                       |
+| `--db`         | `nil`    | Database connection string                                                      |
 
 ### Example
 

@@ -22,14 +22,16 @@ type Config struct {
 	Mode      string
 	BatchSize int
 	Delta     int
+	DB        string
 }
 
 func (c *Config) String() string {
-	return fmt.Sprintf("Path: %s, Mode: %s, BatchSize: %d, Delta: %v",
+	return fmt.Sprintf("Path: %s, Mode: %s, BatchSize: %d, Delta: %v, DB: %s",
 		c.Path,
 		c.Mode,
 		c.BatchSize,
 		c.Delta,
+		c.DB,
 	)
 }
 
@@ -39,6 +41,7 @@ func ParseFlags() (*Config, error) {
 	mode := flag.String("mode", ModeOutput, "mode output|execute")
 	batchSize := flag.Int("batch-size", defaultBatch, "batch size")
 	deltaKey := flag.Int("delta", 0, "delta key")
+	db := flag.String("db", "", "database connection string")
 
 	flag.Parse()
 
@@ -52,15 +55,21 @@ func ParseFlags() (*Config, error) {
 	}
 
 	if *mode != ModeOutput && *mode != ModeExecute {
-		return nil, fmt.Errorf("invalid mode")
+		return nil, fmt.Errorf("invalid mode '%s'", *mode)
+	}
+
+	if *mode == ModeExecute {
+		if *db == "" {
+			return nil, fmt.Errorf("database connection string is required in execute mode")
+		}
 	}
 
 	if *batchSize <= 0 {
 		return nil, fmt.Errorf("batch-size must be > 0")
 	}
 
-	if *deltaKey <= 0 {
-		return nil, fmt.Errorf("deltaKey must be > 0")
+	if *deltaKey < 0 {
+		return nil, fmt.Errorf("deltaKey must be positive number or zero")
 	}
 
 	return &Config{
