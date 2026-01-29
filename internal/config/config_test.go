@@ -34,8 +34,8 @@ func TestParseFlags(t *testing.T) {
 		if cfg.Path != "/test" {
 			t.Fatalf("got Path=%v, want %v", cfg.Path, "/test")
 		}
-		if cfg.Database != "duplicates.db" {
-			t.Fatalf("got Database=%v, want %v", cfg.Database, "duplicates.db")
+		if cfg.Mode != "duplicates.db" {
+			t.Fatalf("got Mode=%v, want %v", cfg.Mode, "duplicates.db")
 		}
 		wantBatch := runtime.NumCPU() * 10
 		if cfg.BatchSize != wantBatch {
@@ -68,8 +68,8 @@ func TestParseFlags(t *testing.T) {
 		if cfg.Path != "/my/path" {
 			t.Fatalf("got Path=%v, want %v", cfg.Path, "/my/path")
 		}
-		if cfg.Database != "custom.db" {
-			t.Fatalf("got Database=%v, want %v", cfg.Database, "custom.db")
+		if cfg.Mode != "custom.db" {
+			t.Fatalf("got Mode=%v, want %v", cfg.Mode, "custom.db")
 		}
 		if cfg.BatchSize != 5 {
 			t.Fatalf("got BatchSize=%v, want %v", cfg.BatchSize, 5)

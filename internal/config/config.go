@@ -12,31 +12,33 @@ var (
 	ErrorPathRequired = errors.New("path is required")
 )
 
+const (
+	ModeOutput  = "output"
+	ModeExecute = "execute"
+)
+
 type Config struct {
 	Path      string
-	Database  string
+	Mode      string
 	BatchSize int
 	Delta     int
-	Replace   bool
 }
 
 func (c *Config) String() string {
-	return fmt.Sprintf("Path: %s, Database: %s, BatchSize: %d, Delta: %v, Replace: %v",
+	return fmt.Sprintf("Path: %s, Mode: %s, BatchSize: %d, Delta: %v",
 		c.Path,
-		c.Database,
+		c.Mode,
 		c.BatchSize,
 		c.Delta,
-		c.Replace,
 	)
 }
 
 func ParseFlags() (*Config, error) {
 	defaultBatch := runtime.NumCPU() * 10
 
-	dbFlag := flag.String("db", "duplicates.db", "database path")
-	batchFlag := flag.Int("batch-size", defaultBatch, "batch size")
-	deltaFlag := flag.Int("delta", 0, "delta value")
-	replaceFlag := flag.Bool("replace", false, "replace duplicate files")
+	mode := flag.String("mode", ModeOutput, "mode output|execute")
+	batchSize := flag.Int("batch-size", defaultBatch, "batch size")
+	deltaKey := flag.Int("delta", 0, "delta key")
 
 	flag.Parse()
 
@@ -49,16 +51,23 @@ func ParseFlags() (*Config, error) {
 		return nil, ErrorPathRequired
 	}
 
-	if *batchFlag <= 0 {
+	if *mode != ModeOutput && *mode != ModeExecute {
+		return nil, fmt.Errorf("invalid mode")
+	}
+
+	if *batchSize <= 0 {
 		return nil, fmt.Errorf("batch-size must be > 0")
+	}
+
+	if *deltaKey <= 0 {
+		return nil, fmt.Errorf("deltaKey must be > 0")
 	}
 
 	return &Config{
 		Path:      path,
-		Database:  *dbFlag,
-		BatchSize: *batchFlag,
-		Delta:     *deltaFlag,
-		Replace:   *replaceFlag,
+		Mode:      *mode,
+		BatchSize: *batchSize,
+		Delta:     *deltaKey,
 	}, nil
 }
 

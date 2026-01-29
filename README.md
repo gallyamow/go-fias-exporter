@@ -1,18 +1,18 @@
 ## go-fias-exporter
 
-Exports FIAS-dump to database tables.
+Exports FIAS-dump files to postgresql tables or outputs resulting SQL queries to console.
 
 ### Usage
 
 ```shell
-fias-exporter [flags] <database> <path>
+fias-exporter [flags] <path>
 ```
 
-| Flag           | Default | Description                                                        |
-|----------------|---------|--------------------------------------------------------------------|
-| `--batch-size` | `1000`  | Minimum size of inserts                                            |
-| `--delta`      | `""`    | Number of delta                                                    |
-| `--replace`    | `true`  | Replace already existing items, commonly used when importing delta |
+| Flag           | Default  | Description                                                                     |
+|----------------|----------|---------------------------------------------------------------------------------|
+| `--mode`       | `output` | "output" - to print result in console, "execute" - to execute resulting queries |
+| `--batch-size` | `1000`   | Minimum size of batch                                                           |
+| `--delta`      | `nil`    | Delta key                                                                       |
 
 ### Example
 
