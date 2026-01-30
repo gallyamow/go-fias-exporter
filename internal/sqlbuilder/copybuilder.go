@@ -8,14 +8,16 @@ import (
 )
 
 type CopyBuilder struct {
-	tableName  string
+	schema     string
+	table      string
 	primaryKey string
 	attrs      []string
 }
 
-func NewCopyBuilder(tablename string, primaryKey string, attrs []string) *CopyBuilder {
+func NewCopyBuilder(schema string, tablename string, primaryKey string, attrs []string) *CopyBuilder {
 	return &CopyBuilder{
-		tableName:  tablename,
+		schema:     schema,
+		table:      tablename,
 		primaryKey: primaryKey,
 		attrs:      attrs,
 	}
@@ -31,7 +33,7 @@ func (b *CopyBuilder) Build(rows []map[string]string) (string, error) {
 		return "", err
 	}
 
-	sql := fmt.Sprintf("COPY %s (%s) FROM STDIN WITH (FORMAT csv);\n\n%s\n\\.", b.tableName, b.buildColumns(), valuesStatement)
+	sql := fmt.Sprintf("COPY %s (%s) FROM STDIN WITH (FORMAT csv);\n\n%s\n\\.", b.buildTablename(), b.buildColumns(), valuesStatement)
 
 	return sql, nil
 }
@@ -55,6 +57,13 @@ func (b *CopyBuilder) buildValues(rows []map[string]string) (string, error) {
 	writer.Flush()
 
 	return buf.String(), nil
+}
+
+func (b *CopyBuilder) buildTablename() string {
+	if b.schema != "" {
+		return fmt.Sprintf("%s.%s", b.schema, b.table)
+	}
+	return b.table
 }
 
 func (b *CopyBuilder) buildColumns() string {

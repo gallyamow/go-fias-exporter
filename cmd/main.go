@@ -90,9 +90,9 @@ func main() {
 
 					switch cfg.Mode {
 					case config.ModeCopy:
-						sqlBuilder = sqlbuilder.NewCopyBuilder(tableName, primaryKey, attrs)
+						sqlBuilder = sqlbuilder.NewCopyBuilder(cfg.Schema, tableName, primaryKey, attrs)
 					case config.ModeUpsert:
-						sqlBuilder = sqlbuilder.NewUpsertBuilder(tableName, primaryKey, attrs)
+						sqlBuilder = sqlbuilder.NewUpsertBuilder(cfg.Schema, tableName, primaryKey, attrs)
 					default:
 						log.Panicf("Failed to resolve builder")
 						return

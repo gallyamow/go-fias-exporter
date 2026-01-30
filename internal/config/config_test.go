@@ -10,7 +10,7 @@ func TestParseFlags_CopyFromMode(t *testing.T) {
 	resetFlags()
 	os.Args = []string{
 		"cmd",
-		"-mode=copy_from",
+		"-mode=copy",
 		"-batch-size=100",
 		"/data/input",
 	}

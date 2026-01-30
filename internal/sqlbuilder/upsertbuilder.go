@@ -6,14 +6,16 @@ import (
 )
 
 type UpsertBuilder struct {
-	tableName  string
+	schema     string
+	table      string
 	primaryKey string
 	attrs      []string
 }
 
-func NewUpsertBuilder(tablename string, primaryKey string, attrs []string) *UpsertBuilder {
+func NewUpsertBuilder(schema string, tablename string, primaryKey string, attrs []string) *UpsertBuilder {
 	return &UpsertBuilder{
-		tableName:  tablename,
+		schema:     schema,
+		table:      tablename,
 		primaryKey: primaryKey,
 		attrs:      attrs,
 	}
@@ -29,7 +31,7 @@ func (b *UpsertBuilder) Build(rows []map[string]string) (string, error) {
 		return "", err
 	}
 
-	res := fmt.Sprintf("INSERT INTO %s (%s) VALUES %s", b.tableName, b.buildColumns(), valuesStatement)
+	res := fmt.Sprintf("INSERT INTO %s (%s) VALUES %s", b.buildTablename(), b.buildColumns(), valuesStatement)
 	if b.primaryKey != "" {
 		res += " " + b.buildOnConflict()
 	}
@@ -54,6 +56,13 @@ func (b *UpsertBuilder) buildValues(rows []map[string]string) (string, error) {
 	}
 
 	return strings.Join(res, ","), nil
+}
+
+func (b *UpsertBuilder) buildTablename() string {
+	if b.schema != "" {
+		return fmt.Sprintf("%s.%s", b.schema, b.table)
+	}
+	return b.table
 }
 
 func (b *UpsertBuilder) buildColumns() string {

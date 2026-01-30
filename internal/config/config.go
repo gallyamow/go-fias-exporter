@@ -19,19 +19,22 @@ const (
 type Config struct {
 	Path      string
 	Mode      string
+	Schema    string
 	BatchSize int
 }
 
 func (c *Config) String() string {
-	return fmt.Sprintf("Path: %s, Mode: %s, BatchSize: %d",
+	return fmt.Sprintf("Path: %s, Mode: %s, Schema: %s, BatchSize: %d",
 		c.Path,
 		c.Mode,
+		c.Schema,
 		c.BatchSize,
 	)
 }
 
 func ParseFlags() (*Config, error) {
 	mode := flag.String("mode", ModeCopy, "mode copy|upsert")
+	schema := flag.String("schema", "", "database schema")
 	batchSize := flag.Int("batch-size", 1000, "batch size")
 
 	flag.Parse()
@@ -56,6 +59,7 @@ func ParseFlags() (*Config, error) {
 	return &Config{
 		Path:      path,
 		Mode:      *mode,
+		Schema:    *schema,
 		BatchSize: *batchSize,
 	}, nil
 }

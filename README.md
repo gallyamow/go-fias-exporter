@@ -11,13 +11,21 @@ fias-exporter [flags] <path>
 | Flag           | Default | Description                                                                   |
 |----------------|---------|-------------------------------------------------------------------------------|
 | `--mode`       | `copy`  | "copy" - generates `COPY FROM csv`, "upsert" - generates `INSERT ON CONFLICT` |
-| `--batch-size` | `1000`  | Minimum size of batch                                                         |
+| `--schema`     | ``      | database schema or public will used by default                                |
+| `--batch-size` | `1000`  | minimum size of batch                                                         |
 
 ### Example
 
 ```shell
 ./fias-exporter --mode copy  ./examples > examples.sql
 ./fias-exporter --mode upsert  ./examples > examples.sql
+```
+
+Importing to postgresql:
+
+```shell
+docker run --name gar -p 5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust -d postgres:latest
+psql -h localhost -d postgres -U postgres
 ```
 
 ### TODO

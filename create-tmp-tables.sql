@@ -1,3 +1,5 @@
+CREATE SCHEMA tmp;
+
 CREATE TABLE tmp.addhouse_types (
                                     id INTEGER NOT NULL PRIMARY KEY,
                                     name VARCHAR NOT NULL,
