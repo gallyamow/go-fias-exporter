@@ -16,9 +16,11 @@ fias-exporter [flags] <path>
 
 ### Example
 
+Generate queries:
+
 ```shell
-./fias-exporter --mode copy  ./examples > examples.sql
-./fias-exporter --mode upsert  ./examples > examples.sql
+./fias-exporter --mode copy  ./examples 
+./fias-exporter --mode upsert  ./examples
 ```
 
 Importing to postgresql:
@@ -26,6 +28,9 @@ Importing to postgresql:
 ```shell
 docker run --name gar -p 5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust -d postgres:latest
 psql -h localhost -d postgres -U postgres
+
+./fias-exporter --schema=tmp ./examples > examples.sql
+psql -h localhost -d postgres -U postgres < ./examples.sql
 ```
 
 ### TODO
