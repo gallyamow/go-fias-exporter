@@ -65,8 +65,8 @@ func main() {
 			defer file.Close()
 
 			iterator := itemiterator.New(file)
+			var sqlBuilder sqlbuilder.Builder
 			totalRows := 0
-			var sqlBuilder *sqlbuilder.UpsertBuilder
 
 			for {
 				items, err := iterator.Next(ctx, cfg.BatchSize)
@@ -78,7 +78,19 @@ func main() {
 				if sqlBuilder == nil {
 					primaryKey := sqlbuilder.ResolvePrimaryKey(tableName, items[0])
 					attrs := sqlbuilder.ResolveAttrs(items[0])
-					sqlBuilder = sqlbuilder.NewUpsertBuilder(tableName, primaryKey, attrs)
+
+					switch cfg.Mode {
+					case config.ModeCopyFrom:
+						sqlBuilder = sqlbuilder.NewCopyBuilder(tableName, primaryKey, attrs)
+					case config.ModeUpsert:
+						sqlBuilder = sqlbuilder.NewUpsertBuilder(tableName, primaryKey, attrs)
+					default:
+						_, _ = fmt.Fprintf(os.Stderr, "Failed to resolve builder\n")
+						return
+					}
+
+					// dev
+					sqlBuilder = sqlbuilder.NewCopyBuilder(tableName, primaryKey, attrs)
 				}
 
 				if len(items) > 0 {

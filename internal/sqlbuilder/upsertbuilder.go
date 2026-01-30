@@ -24,15 +24,20 @@ func (b *UpsertBuilder) Build(rows []map[string]string) (string, error) {
 		return "", fmt.Errorf("no rows to build")
 	}
 
-	sql := fmt.Sprintf("INSERT INTO %s (%s) VALUES %s", b.tableName, b.buildColumns(), b.buildValues(rows))
-	if b.primaryKey != "" {
-		sql += " " + b.buildOnConflict()
+	valuesStatement, err := b.buildValues(rows)
+	if err != nil {
+		return "", err
 	}
 
-	return sql, nil
+	res := fmt.Sprintf("INSERT INTO %s (%s) VALUES %s", b.tableName, b.buildColumns(), valuesStatement)
+	if b.primaryKey != "" {
+		res += " " + b.buildOnConflict()
+	}
+
+	return res, nil
 }
 
-func (b *UpsertBuilder) buildValues(rows []map[string]string) string {
+func (b *UpsertBuilder) buildValues(rows []map[string]string) (string, error) {
 	var res []string
 
 	for _, row := range rows {
@@ -41,13 +46,14 @@ func (b *UpsertBuilder) buildValues(rows []map[string]string) string {
 		// to keep order of columns
 		for _, attrName := range b.attrs {
 			// (to keep simple quote for all values)
-			vals = append(vals, fmt.Sprintf("'%s'", row[attrName]))
+			escapedValue := strings.ReplaceAll(row[attrName], "'", "''")
+			vals = append(vals, fmt.Sprintf("'%s'", escapedValue))
 		}
 
 		res = append(res, fmt.Sprintf("(%s)", strings.Join(vals, ",")))
 	}
 
-	return strings.Join(res, ",")
+	return strings.Join(res, ","), nil
 }
 
 func (b *UpsertBuilder) buildColumns() string {
