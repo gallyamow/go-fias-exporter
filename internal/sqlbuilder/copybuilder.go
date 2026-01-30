@@ -41,7 +41,7 @@ func (b *CopyBuilder) buildValues(rows []map[string]string) (string, error) {
 	writer := csv.NewWriter(&buf)
 
 	for _, row := range rows {
-		vals := make([]string, len(row))
+		vals := make([]string, len(b.attrs))
 		// to keep order of columns
 		for i, attrName := range b.attrs {
 			vals[i] = row[attrName]

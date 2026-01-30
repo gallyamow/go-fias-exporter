@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -74,6 +75,11 @@ func main() {
 			for {
 				items, err := iterator.Next(ctx, cfg.BatchSize)
 				if err != nil && err != io.EOF {
+					if errors.Is(err, context.Canceled) {
+						fmt.Printf("-- Canceled: file %q (%d bytes), table %q\n", fileName, f.Size, tableName)
+						return
+					}
+
 					log.Panicf("Failed to read file: %v", err)
 					return
 				}
