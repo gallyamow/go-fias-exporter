@@ -6,13 +6,12 @@ import (
 	"testing"
 )
 
-func TestParseFlags_OutputMode(t *testing.T) {
+func TestParseFlags_CopyFromMode(t *testing.T) {
 	resetFlags()
 	os.Args = []string{
 		"cmd",
-		"-mode=output",
+		"-mode=copy_from",
 		"-batch-size=100",
-		"-delta=5",
 		"/data/input",
 	}
 
@@ -25,39 +24,20 @@ func TestParseFlags_OutputMode(t *testing.T) {
 		t.Fatalf("unexpected path: %s", cfg.Path)
 	}
 
-	if cfg.Mode != ModeOutput {
+	if cfg.Mode != ModeCopyFrom {
 		t.Fatalf("unexpected mode: %s", cfg.Mode)
 	}
 
 	if cfg.BatchSize != 100 {
 		t.Fatalf("unexpected batch size: %d", cfg.BatchSize)
 	}
-
-	if cfg.Delta != 5 {
-		t.Fatalf("unexpected delta: %d", cfg.Delta)
-	}
 }
 
-func TestParseFlags_ExecuteModeRequiresDB(t *testing.T) {
+func TestParseFlags_UpsertModeWithDB(t *testing.T) {
 	resetFlags()
 	os.Args = []string{
 		"cmd",
-		"-mode=execute",
-		"/data/input",
-	}
-
-	_, err := ParseFlags()
-	if err == nil {
-		t.Fatalf("expected error, got nil")
-	}
-}
-
-func TestParseFlags_ExecuteModeWithDB(t *testing.T) {
-	resetFlags()
-	os.Args = []string{
-		"cmd",
-		"-mode=execute",
-		"-db=postgres://localhost/db",
+		"-mode=upsert",
 		"/data/input",
 	}
 
@@ -66,7 +46,7 @@ func TestParseFlags_ExecuteModeWithDB(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if cfg.Mode != ModeExecute {
+	if cfg.Mode != ModeUpsert {
 		t.Fatalf("unexpected mode: %s", cfg.Mode)
 	}
 }
@@ -102,20 +82,6 @@ func TestParseFlags_InvalidBatchSize(t *testing.T) {
 	os.Args = []string{
 		"cmd",
 		"-batch-size=0",
-		"/data/input",
-	}
-
-	_, err := ParseFlags()
-	if err == nil {
-		t.Fatalf("expected error, got nil")
-	}
-}
-
-func TestParseFlags_InvalidDelta(t *testing.T) {
-	resetFlags()
-	os.Args = []string{
-		"cmd",
-		"-delta=-1",
 		"/data/input",
 	}
 

@@ -12,33 +12,27 @@ var (
 )
 
 const (
-	ModeOutput  = "output"
-	ModeExecute = "execute"
+	ModeCopyFrom = "copy_from"
+	ModeUpsert   = "upsert"
 )
 
 type Config struct {
 	Path      string
 	Mode      string
 	BatchSize int
-	Delta     int
-	DB        string
 }
 
 func (c *Config) String() string {
-	return fmt.Sprintf("Path: %s, Mode: %s, BatchSize: %d, Delta: %v, DB: %s",
+	return fmt.Sprintf("Path: %s, Mode: %s, BatchSize: %d",
 		c.Path,
 		c.Mode,
 		c.BatchSize,
-		c.Delta,
-		c.DB,
 	)
 }
 
 func ParseFlags() (*Config, error) {
-	mode := flag.String("mode", ModeOutput, "mode output|execute")
+	mode := flag.String("mode", ModeCopyFrom, "mode output|execute")
 	batchSize := flag.Int("batch-size", 1000, "batch size")
-	deltaKey := flag.Int("delta", 0, "delta key")
-	db := flag.String("db", "", "database connection string")
 
 	flag.Parse()
 
@@ -51,29 +45,18 @@ func ParseFlags() (*Config, error) {
 		return nil, ErrorPathRequired
 	}
 
-	if *mode != ModeOutput && *mode != ModeExecute {
+	if *mode != ModeCopyFrom && *mode != ModeUpsert {
 		return nil, fmt.Errorf("invalid mode '%s'", *mode)
-	}
-
-	if *mode == ModeExecute {
-		if *db == "" {
-			return nil, fmt.Errorf("database connection string is required in execute mode")
-		}
 	}
 
 	if *batchSize <= 0 {
 		return nil, fmt.Errorf("batch-size must be > 0")
 	}
 
-	if *deltaKey < 0 {
-		return nil, fmt.Errorf("deltaKey must be positive number or zero")
-	}
-
 	return &Config{
 		Path:      path,
 		Mode:      *mode,
 		BatchSize: *batchSize,
-		Delta:     *deltaKey,
 	}, nil
 }
 
