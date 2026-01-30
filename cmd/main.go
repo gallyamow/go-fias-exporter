@@ -8,6 +8,7 @@ import (
 	"github.com/gallyamow/go-fias-exporter/internal/sqlbuilder"
 	"github.com/gallyamow/go-fias-exporter/pkg/filescanner"
 	"io"
+	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -22,27 +23,24 @@ func main() {
 
 	cfg, err := config.ParseFlags()
 	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, "Failed parse config:", err)
-		os.Exit(1)
+		log.Fatalf("Failed to parse config: %v", err)
 	}
 
-	_, _ = fmt.Fprintf(os.Stderr, "Version: %s\n", version)
-	_, _ = fmt.Fprintln(os.Stderr, cfg)
+	//_, _ = fmt.Fprintf(os.Stderr, "Version: %s\n", version)
+	//_, _ = fmt.Fprintln(os.Stderr, cfg)
 
 	files, err := filescanner.ScanDir(ctx, cfg.Path, filescanner.Filter{IncludeExts: []string{"xml"}})
 	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
+		log.Fatalf("Failed to scan dir: %v", err)
 	}
 
 	_, _ = fmt.Fprintf(os.Stderr, "Found files: %d\n", len(files))
 	if len(files) == 0 {
-		os.Exit(1)
+		log.Fatalf("No files found")
 	}
 
 	for _, f := range files {
 		if ctx.Err() != nil {
-			_, _ = fmt.Fprintln(os.Stderr, "Interrupted")
 			return
 		}
 
@@ -50,16 +48,16 @@ func main() {
 
 		tableName, err := sqlbuilder.ResolveTableName(fileName)
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Failed to resolve tablename: %v\n", err)
+			log.Fatalf("Failed to resolve tablename: %v", err)
 			return
 		}
 
-		_, _ = fmt.Fprintf(os.Stderr, "Started: file %q (%d bytes), table %q \n", fileName, f.Size, tableName)
+		fmt.Printf("-- Started: file %q (%d bytes), table %q\n", fileName, f.Size, tableName)
 
 		func() {
 			file, err := os.Open(f.Path)
 			if err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "Failed to open file: %v\n", err)
+				log.Panicf("Failed to open file: %v", err)
 				return
 			}
 			defer file.Close()
@@ -71,7 +69,7 @@ func main() {
 			for {
 				items, err := iterator.Next(ctx, cfg.BatchSize)
 				if err != nil && err != io.EOF {
-					_, _ = fmt.Fprintf(os.Stderr, "Failed to read file: %v\n", err)
+					log.Panicf("Failed to read file: %v", err)
 					return
 				}
 
@@ -85,27 +83,25 @@ func main() {
 					case config.ModeUpsert:
 						sqlBuilder = sqlbuilder.NewUpsertBuilder(tableName, primaryKey, attrs)
 					default:
-						_, _ = fmt.Fprintf(os.Stderr, "Failed to resolve builder\n")
+						log.Panicf("Failed to resolve builder")
 						return
 					}
-
-					// dev
-					sqlBuilder = sqlbuilder.NewCopyBuilder(tableName, primaryKey, attrs)
 				}
 
 				if len(items) > 0 {
 					sql, err := sqlBuilder.Build(items)
 					if err != nil {
-						_, _ = fmt.Fprintf(os.Stderr, "Failed to build sql: %v\n", err)
+						log.Panicf("Failed to build sql: %v", err)
 						return
 					}
 
+					fmt.Println(sql)
 					totalRows++
-					_, _ = fmt.Fprintf(os.Stderr, "%s;\n", sql)
 				}
 
 				if err == io.EOF {
-					_, _ = fmt.Fprintf(os.Stderr, "Ended: %q (%d rows)\n", f.Path, totalRows)
+					fmt.Printf("-- Ended: %q (%d rows)\n", f.Path, totalRows)
+					fmt.Println()
 					break
 				}
 			}
