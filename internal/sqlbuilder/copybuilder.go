@@ -33,7 +33,7 @@ func (b *CopyBuilder) Build(rows []map[string]string) (string, error) {
 		return "", err
 	}
 
-	sql := fmt.Sprintf("COPY %s (%s) FROM STDIN WITH (FORMAT csv);\n\n%s\n\\.", b.buildTablename(), b.buildColumns(), valuesStatement)
+	sql := fmt.Sprintf("COPY %s (%s) FROM STDIN WITH (FORMAT csv);\n%s\\.", b.buildTablename(), b.buildColumns(), valuesStatement)
 
 	return sql, nil
 }

@@ -28,10 +28,8 @@ func TestCopyBuilder_Build(t *testing.T) {
 		}
 
 		want := `COPY tmp.test_table (id,name) FROM STDIN WITH (FORMAT csv);
-
 1,Alice
 2,Bob
-
 \.`
 		if got != want {
 			t.Fatalf("got %q, want %q", got, want)
@@ -63,10 +61,8 @@ func TestCopyBuilder_Build(t *testing.T) {
 		}
 
 		want := `COPY test_table (id,name) FROM STDIN WITH (FORMAT csv);
-
 1,Alice
 2,Bob
-
 \.`
 		if got != want {
 			t.Fatalf("got %q, want %q", got, want)
@@ -99,10 +95,8 @@ func TestCopyBuilder_PreservesColumnOrder(t *testing.T) {
 	}
 
 	want := `COPY tmp.test_table (name,id) FROM STDIN WITH (FORMAT csv);
-
 Alice,1
 Bob,2
-
 \.`
 	if got != want {
 		t.Fatalf("got %q, want %q", got, want)

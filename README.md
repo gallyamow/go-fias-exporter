@@ -26,11 +26,11 @@ Generate queries:
 Importing to postgresql:
 
 ```shell
-docker run --name gar -p 5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust -d postgres:latest
-psql -h localhost -d postgres -U postgres
-
 ./fias-exporter --schema=tmp ./examples > examples.sql
-psql -h localhost -d postgres -U postgres < ./examples.sql
+
+docker run --name gar -p 5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust -d postgres:latest
+docker exec -i gar psql -U postgres < ./create-tmp-tables.sql
+docker exec -i gar psql -U postgres < ./examples.sql
 ```
 
 ### TODO
