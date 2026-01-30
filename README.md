@@ -1,11 +1,27 @@
 ## go-fias-exporter
 
-Exports FIAS-dump files to postgresql tables or outputs resulting SQL queries to console.
+Reads FIAS-dump files and outputs resulting SQL queries to console.
 
-### Usage
+## Features
+
+* Supports two export modes: `COPY (fast bulk import)` and `UPSERT` (merge/update existing data)
+* Configurable batch processing for optimal performance
+* Schema support for organized database structure
+* Generates SQL files for later execution or direct pipeline import
+
+## Installation
 
 ```shell
-fias-exporter [flags] <path>
+make build
+
+# Or install directly
+go install github.com/gallywow/go-fias-exporter
+```
+
+## Usage
+
+```shell
+fias-exporter [flags] <path-to-fias-dump>
 ```
 
 | Flag           | Default | Description                                                                   |
