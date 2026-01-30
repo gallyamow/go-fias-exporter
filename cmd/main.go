@@ -3,16 +3,18 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gallyamow/go-fias-exporter/internal/config"
-	"github.com/gallyamow/go-fias-exporter/internal/itemiterator"
-	"github.com/gallyamow/go-fias-exporter/internal/sqlbuilder"
-	"github.com/gallyamow/go-fias-exporter/pkg/filescanner"
 	"io"
 	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"time"
+
+	"github.com/gallyamow/go-fias-exporter/internal/config"
+	"github.com/gallyamow/go-fias-exporter/internal/itemiterator"
+	"github.com/gallyamow/go-fias-exporter/internal/sqlbuilder"
+	"github.com/gallyamow/go-fias-exporter/pkg/filescanner"
 )
 
 var version = "unknown"
@@ -26,15 +28,18 @@ func main() {
 		log.Fatalf("Failed to parse config: %v", err)
 	}
 
-	//_, _ = fmt.Fprintf(os.Stderr, "Version: %s\n", version)
-	//_, _ = fmt.Fprintln(os.Stderr, cfg)
+	fmt.Println("-- >>>")
+	fmt.Printf("-- Version: %s\n", version)
+	fmt.Printf("-- %s", cfg)
+	fmt.Printf("-- Started at: %s\n", time.Now())
+	fmt.Println("-- <<<")
+	fmt.Println()
 
 	files, err := filescanner.ScanDir(ctx, cfg.Path, filescanner.Filter{IncludeExts: []string{"xml"}})
 	if err != nil {
 		log.Fatalf("Failed to scan dir: %v", err)
 	}
 
-	_, _ = fmt.Fprintf(os.Stderr, "Found files: %d\n", len(files))
 	if len(files) == 0 {
 		log.Fatalf("No files found")
 	}
@@ -78,7 +83,7 @@ func main() {
 					attrs := sqlbuilder.ResolveAttrs(items[0])
 
 					switch cfg.Mode {
-					case config.ModeCopyFrom:
+					case config.ModeCopy:
 						sqlBuilder = sqlbuilder.NewCopyBuilder(tableName, primaryKey, attrs)
 					case config.ModeUpsert:
 						sqlBuilder = sqlbuilder.NewUpsertBuilder(tableName, primaryKey, attrs)

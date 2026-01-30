@@ -24,7 +24,7 @@ func TestParseFlags_CopyFromMode(t *testing.T) {
 		t.Fatalf("unexpected path: %s", cfg.Path)
 	}
 
-	if cfg.Mode != ModeCopyFrom {
+	if cfg.Mode != ModeCopy {
 		t.Fatalf("unexpected mode: %s", cfg.Mode)
 	}
 

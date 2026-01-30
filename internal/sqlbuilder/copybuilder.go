@@ -22,7 +22,7 @@ func NewCopyBuilder(tablename string, primaryKey string, attrs []string) *CopyBu
 }
 
 func (b *CopyBuilder) Build(rows []map[string]string) (string, error) {
-	if rows == nil || len(rows) == 0 {
+	if len(rows) == 0 {
 		return "", fmt.Errorf("no rows to build")
 	}
 

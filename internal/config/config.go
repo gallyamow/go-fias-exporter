@@ -12,8 +12,8 @@ var (
 )
 
 const (
-	ModeCopyFrom = "copy_from"
-	ModeUpsert   = "upsert"
+	ModeCopy   = "copy"
+	ModeUpsert = "upsert"
 )
 
 type Config struct {
@@ -31,7 +31,7 @@ func (c *Config) String() string {
 }
 
 func ParseFlags() (*Config, error) {
-	mode := flag.String("mode", ModeCopyFrom, "mode output|execute")
+	mode := flag.String("mode", ModeCopy, "mode copy|upsert")
 	batchSize := flag.Int("batch-size", 1000, "batch size")
 
 	flag.Parse()
@@ -45,7 +45,7 @@ func ParseFlags() (*Config, error) {
 		return nil, ErrorPathRequired
 	}
 
-	if *mode != ModeCopyFrom && *mode != ModeUpsert {
+	if *mode != ModeCopy && *mode != ModeUpsert {
 		return nil, fmt.Errorf("invalid mode '%s'", *mode)
 	}
 

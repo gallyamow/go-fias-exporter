@@ -1,37 +1,49 @@
+version: "2"
 run:
-  timeout: 5m
   tests: true
-
 linters:
   enable:
-    - govet
-    - errcheck
-    - gosimple
-    - staticcheck
-    - unused
-    - ineffassign
-    - typecheck
-    - gocyclo
     - dupl
-    - goimports
-
+    - gocyclo
+  settings:
+    dupl:
+      threshold: 100
+    gocyclo:
+      min-complexity: 10
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - dupl
+        text: generated
+    paths:
+      - .*_test.go
+      - dist
+      - vendor
+      - third_party$
+      - builtin$
+      - examples$
 issues:
-  exclude-dirs:
-    - dist
-    - vendor
-  exclude-files:
-    - ".*_test.go"
   max-issues-per-linter: 0
   max-same-issues: 0
-  exclude-rules:
-    - linters:
-        - dupl
-      text: "generated"
-
-linters-settings:
-  gocyclo:
-    min-complexity: 10
-  dupl:
-    threshold: 100
-  goimports:
-    local-prefixes: github.com/gallyamow/go-fias-exporter
+formatters:
+  enable:
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/gallyamow/go-fias-exporter
+  exclusions:
+    generated: lax
+    paths:
+      - .*_test.go
+      - dist
+      - vendor
+      - third_party$
+      - builtin$
+      - examples$

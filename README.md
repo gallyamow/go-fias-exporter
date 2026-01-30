@@ -8,16 +8,16 @@ Exports FIAS-dump files to postgresql tables or outputs resulting SQL queries to
 fias-exporter [flags] <path>
 ```
 
-| Flag           | Default  | Description                                                                            |
-|----------------|----------|----------------------------------------------------------------------------------------|
-| `--mode`       | `output` | "copy_from" - generates csv usable with COPY FROM, "upsert" - generates batched upsert |
-| `--batch-size` | `1000`   | Minimum size of batch                                                                  |
-| `--db`         | `nil`    | Database connection string                                                             |
+| Flag           | Default | Description                                                                   |
+|----------------|---------|-------------------------------------------------------------------------------|
+| `--mode`       | `copy`  | "copy" - generates `COPY FROM csv`, "upsert" - generates `INSERT ON CONFLICT` |
+| `--batch-size` | `1000`  | Minimum size of batch                                                         |
 
 ### Example
 
 ```shell
-./fias-exporter  ./example
+./fias-exporter --mode copy  ./examples > examples.sql
+./fias-exporter --mode upsert  ./examples > examples.sql
 ```
 
 ### TODO
