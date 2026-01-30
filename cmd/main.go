@@ -54,9 +54,7 @@ func main() {
 			return
 		}
 
-		_, _ = fmt.Fprintf(os.Stdout, "Started: file %q (%d bytes), table %q \n", fileName, f.Size, tableName)
-
-		sqlBuilder := sqlbuilder.New(tableName, []string{"id"}, []string{"id"})
+		_, _ = fmt.Fprintf(os.Stderr, "Started: file %q (%d bytes), table %q \n", fileName, f.Size, tableName)
 
 		func() {
 			file, err := os.Open(f.Path)
@@ -66,14 +64,21 @@ func main() {
 			}
 			defer file.Close()
 
+			iterator := itemiterator.New(file)
 			totalRows := 0
-			it := itemiterator.New(file)
+			var sqlBuilder *sqlbuilder.UpsertBuilder
 
 			for {
-				items, err := it.Next(ctx, cfg.BatchSize)
+				items, err := iterator.Next(ctx, cfg.BatchSize)
 				if err != nil && err != io.EOF {
 					_, _ = fmt.Fprintf(os.Stderr, "Failed to read file: %v\n", err)
 					return
+				}
+
+				if sqlBuilder == nil {
+					primaryKey := sqlbuilder.ResolvePrimaryKey(tableName, items[0])
+					attrs := sqlbuilder.ResolveAttrs(items[0])
+					sqlBuilder = sqlbuilder.NewUpsertBuilder(tableName, primaryKey, attrs)
 				}
 
 				if len(items) > 0 {
@@ -88,7 +93,7 @@ func main() {
 				}
 
 				if err == io.EOF {
-					_, _ = fmt.Fprintf(os.Stdout, "Ended: %q (%d rows)\n", f.Path, totalRows)
+					_, _ = fmt.Fprintf(os.Stderr, "Ended: %q (%d rows)\n", f.Path, totalRows)
 					break
 				}
 			}

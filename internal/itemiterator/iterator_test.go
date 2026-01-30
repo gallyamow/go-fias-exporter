@@ -61,7 +61,7 @@ func TestItemIterator_Next(t *testing.T) {
 			}
 
 			for i, id := range tt.wantIDs {
-				if items[i]["id"] != id {
+				if items[i]["ID"] != id {
 					t.Fatalf("expected id=%s, got %v", id, items[i])
 				}
 			}
@@ -86,32 +86,8 @@ func TestItemIterator_SkipsRootElement(t *testing.T) {
 		t.Fatalf("expected 1 item, got %d", len(items))
 	}
 
-	if items[0]["id"] != "42" {
+	if items[0]["ID"] != "42" {
 		t.Fatalf("expected id=42, got %v", items[0])
-	}
-}
-
-func TestItemIterator_AttributeNamesLowercased(t *testing.T) {
-	xmlData := `
-	<root>
-		<item ITEM_ID="123" ChangeID="456"/>
-	</root>`
-
-	it := New(strings.NewReader(xmlData))
-
-	items, err := it.Next(context.Background(), 1)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	item := items[0]
-
-	if _, ok := item["item_id"]; !ok {
-		t.Fatalf("expected attribute item_id, got %v", item)
-	}
-
-	if _, ok := item["changeid"]; !ok {
-		t.Fatalf("expected attribute changeid, got %v", item)
 	}
 }
 

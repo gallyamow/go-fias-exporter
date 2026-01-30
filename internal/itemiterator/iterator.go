@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"strings"
 )
 
 type ItemIterator struct {
@@ -51,7 +50,7 @@ func (r *ItemIterator) Next(ctx context.Context, n int) ([]map[string]string, er
 
 		m := make(map[string]string)
 		for _, attr := range el.Attr {
-			m[resolveColumnName(attr.Name.Local)] = attr.Value
+			m[attr.Name.Local] = attr.Value
 		}
 
 		res = append(res, m)
@@ -60,10 +59,4 @@ func (r *ItemIterator) Next(ctx context.Context, n int) ([]map[string]string, er
 			return res, nil
 		}
 	}
-}
-
-// ITEM_ID => item_id
-// CHANGEID => changeid
-func resolveColumnName(attrName string) string {
-	return strings.ToLower(attrName)
 }
