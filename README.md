@@ -1,13 +1,16 @@
 ## go-fias-exporter
 
-Reads FIAS-dump files and outputs resulting SQL queries to console.
+Transforms FIAS XML dumps into SQL suitable for PostgreSQL import.
 
 ## Features
 
-* Supports two export modes: `COPY (fast bulk import)` and `UPSERT` (merge/update existing data)
-* Configurable batch processing for optimal performance
-* Schema support for organized database structure
-* Generates SQL files for later execution or direct pipeline import
+* Supports two export modes:
+  - COPY — fast bulk import using COPY FROM STDIN
+  - UPSERT — merge/update existing data using INSERT … ON CONFLICT
+* Configurable batch size for optimal performance
+* Generates SQL output for:
+  - saving to files
+  - direct pipelined import into PostgreSQL
 
 ## Installation
 
@@ -15,7 +18,7 @@ Reads FIAS-dump files and outputs resulting SQL queries to console.
 make build
 
 # Or install directly
-go install github.com/gallywow/go-fias-exporter
+go install github.com/gallywow/go-fias-exporter@latest
 ```
 
 ## Usage
@@ -24,32 +27,28 @@ go install github.com/gallywow/go-fias-exporter
 fias-exporter [flags] <path-to-fias-dump>
 ```
 
-| Flag           | Default | Description                                                                   |
-|----------------|---------|-------------------------------------------------------------------------------|
-| `--mode`       | `copy`  | "copy" - generates `COPY FROM csv`, "upsert" - generates `INSERT ON CONFLICT` |
-| `--schema`     | ``      | database schema or public will used by default                                |
-| `--batch-size` | `1000`  | minimum size of batch                                                         |
+| Flag           | Default  | Description                                                              |
+|----------------|----------|--------------------------------------------------------------------------|
+| `--mode`       | `copy`   | Export mode: `copy` (COPY FROM STDIN) or `upsert` (INSERT … ON CONFLICT) |
+| `--schema`     | `public` | Target database schema                                                   |
+| `--batch-size` | `1000`   | Number of records per batch                                              |
 
 ### Example
 
-Generate queries:
-
 ```shell
-./fias-exporter --mode copy  ./examples 
-./fias-exporter --mode upsert  ./examples
-```
+docker pull postgres:latest
+docker run --name gar \
+  -p 5432:5432 \
+  -e POSTGRES_HOST_AUTH_METHOD=trust \
+  -d postgres:latest
 
-Importing to postgresql:
-
-```shell
-./fias-exporter --schema=tmp ./examples > examples.sql
-
-docker run --name gar -p 5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust -d postgres:latest
+# create tables
 docker exec -i gar psql -U postgres < ./create-tmp-tables.sql
-docker exec -i gar psql -U postgres < ./examples.sql
+
+# pipelined data import
+./fias-exporter --mode copy --schema tmp ./examples | docker exec -i gar psql -U postgres
 ```
 
 ### TODO
 
-- import schemas and use it to create tmp tables
-- type casting based on schema
+- generate database tables from FIAS schemas with column type casting
