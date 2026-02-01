@@ -36,16 +36,24 @@ func ScanDir(ctx context.Context, root string, filter Filter) ([]model.FileInfo,
 		}
 
 		if d.IsDir() {
+			// .git and etc
+			if strings.HasPrefix(d.Name(), ".") {
+				return fs.SkipDir
+			}
+
 			if isDirExcluded(d, filter) {
 				return fs.SkipDir
 			}
 			return nil
 		}
 
-		// symlinks?
-
 		info, err := d.Info()
 		if err != nil {
+			return nil
+		}
+
+		// .DS_Store and etc
+		if strings.HasPrefix(d.Name(), ".") {
 			return nil
 		}
 
