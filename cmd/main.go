@@ -12,8 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gallyamow/go-fias-exporter/internal/config"
 	"github.com/gallyamow/go-fias-exporter/internal/itemiterator"
+
+	"github.com/gallyamow/go-fias-exporter/internal/config"
 	"github.com/gallyamow/go-fias-exporter/internal/sqlbuilder"
 	"github.com/gallyamow/go-fias-exporter/pkg/filescanner"
 )
@@ -45,12 +46,12 @@ func main() {
 		log.Fatalf("No files found")
 	}
 
-	for _, f := range files {
+	for _, fileInfo := range files {
 		if ctx.Err() != nil {
 			return
 		}
 
-		fileName := filepath.Base(f.Path)
+		fileName := filepath.Base(fileInfo.Path)
 
 		tableName, err := sqlbuilder.ResolveTableName(fileName)
 		if err != nil {
@@ -58,64 +59,68 @@ func main() {
 			return
 		}
 
-		fmt.Printf("-- Started: file %q (%d bytes), table %q\n", fileName, f.Size, tableName)
+		fmt.Printf("-- Started: file %q (%d bytes), table %q\n", fileName, fileInfo.Size, tableName)
+		handleFile(ctx, cfg, tableName, fileInfo.Path)
+	}
+}
 
-		func() {
-			file, err := os.Open(f.Path)
-			if err != nil {
-				log.Panicf("Failed to open file: %v", err)
+func handleFile(ctx context.Context, cfg *config.Config, tableName string, filePath string) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		log.Panicf("Failed to open file: %v", err)
+		return
+	}
+	defer file.Close()
+
+	iterator := itemiterator.New(file)
+	var sqlBuilder sqlbuilder.Builder
+	totalRows := 0
+
+	for {
+		items, err := iterator.Next(ctx, cfg.BatchSize)
+		if err != nil && err != io.EOF {
+			if errors.Is(err, context.Canceled) {
+				fmt.Println("-- Canceled")
 				return
 			}
-			defer file.Close()
 
-			iterator := itemiterator.New(file)
-			var sqlBuilder sqlbuilder.Builder
-			totalRows := 0
+			log.Panicf("Failed to read file: %v", err)
+			return
+		}
 
-			for {
-				items, err := iterator.Next(ctx, cfg.BatchSize)
-				if err != nil && err != io.EOF {
-					if errors.Is(err, context.Canceled) {
-						fmt.Printf("-- Canceled: file %q (%d bytes), table %q\n", fileName, f.Size, tableName)
-						return
-					}
+		if sqlBuilder == nil {
+			sqlBuilder = resolveSQLBuilder(cfg, tableName, items[0])
+		}
 
-					log.Panicf("Failed to read file: %v", err)
-					return
-				}
-
-				if sqlBuilder == nil {
-					primaryKey := sqlbuilder.ResolvePrimaryKey(tableName, items[0])
-					attrs := sqlbuilder.ResolveAttrs(items[0])
-
-					switch cfg.Mode {
-					case config.ModeCopy:
-						sqlBuilder = sqlbuilder.NewCopyBuilder(cfg.Schema, tableName, primaryKey, attrs)
-					case config.ModeUpsert:
-						sqlBuilder = sqlbuilder.NewUpsertBuilder(cfg.Schema, tableName, primaryKey, attrs)
-					default:
-						log.Panicf("Failed to resolve builder")
-						return
-					}
-				}
-
-				if len(items) > 0 {
-					sql, err := sqlBuilder.Build(items)
-					if err != nil {
-						log.Panicf("Failed to build sql: %v", err)
-						return
-					}
-
-					fmt.Println(sql)
-					totalRows++
-				}
-
-				if err == io.EOF {
-					fmt.Printf("-- Ended: %q (%d rows)\n", f.Path, totalRows)
-					fmt.Println()
-					break
-				}
+		if len(items) > 0 {
+			sql, err := sqlBuilder.Build(items)
+			if err != nil {
+				log.Panicf("Failed to build sql: %v", err)
+				return
 			}
-		}()
+
+			fmt.Println(sql)
+			totalRows++
+		}
+
+		if err == io.EOF {
+			fmt.Printf("-- Ended: %q (%d rows)\n", filePath, totalRows)
+			fmt.Println()
+			break
+		}
+	}
+}
+
+func resolveSQLBuilder(cfg *config.Config, tableName string, item map[string]string) sqlbuilder.Builder {
+	primaryKey := sqlbuilder.ResolvePrimaryKey(tableName, item)
+	attrs := sqlbuilder.ResolveAttrs(item)
+
+	switch cfg.Mode {
+	case config.ModeCopy:
+		return sqlbuilder.NewCopyBuilder(cfg.Schema, tableName, primaryKey, attrs)
+	case config.ModeUpsert:
+		return sqlbuilder.NewUpsertBuilder(cfg.Schema, tableName, primaryKey, attrs)
+	default:
+		panic("Failed to resolve builder")
 	}
 }
