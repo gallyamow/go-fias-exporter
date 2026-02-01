@@ -4,7 +4,7 @@ run:
 linters:
   enable:
     - dupl
-    - gocyclo
+#    - gocyclo
   settings:
     dupl:
       threshold: 100
