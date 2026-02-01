@@ -34,6 +34,37 @@ func TestResolveTableName(t *testing.T) {
 			filename: "AS_TEST_TABLE_20240101_xxx.xml",
 			want:     "test_table",
 		},
+		// params tables
+		{
+			name:     "rooms_params",
+			filename: "AS_ROOMS_PARAMS_20260129_dc1a4296-0d07-4740-8cf7-3a2f9de8ffa3.XML",
+			want:     "param",
+		},
+		{
+			name:     "carplaces_params",
+			filename: "AS_CARPLACES_PARAMS_20260129_1fef63bd-e097-4a9c-bf6b-24ea3a03f677.XML",
+			want:     "param",
+		},
+		{
+			name:     "addr_obj_params",
+			filename: "AS_ADDR_OBJ_PARAMS_20260129_63da61e3-dfcb-49e9-b86d-fab7a11fd814.XML",
+			want:     "param",
+		},
+		{
+			name:     "apartments_params",
+			filename: "AS_APARTMENTS_PARAMS_20260129_d90d26f3-db84-49e0-aeb6-fa44e2f3811f.XML",
+			want:     "param",
+		},
+		{
+			name:     "houses_params",
+			filename: "AS_HOUSES_PARAMS_20260129_3182ca06-d1cf-4b37-8663-3cf47847bfae.XML",
+			want:     "param",
+		},
+		{
+			name:     "steads_params",
+			filename: "AS_STEADS_PARAMS_20260129_42707246-af85-4544-a092-cc258a4ca1fe.XML",
+			want:     "param",
+		},
 	}
 
 	for _, tt := range tests {

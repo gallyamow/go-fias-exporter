@@ -63,7 +63,7 @@ func (b *CopyBuilder) buildValues(rows []map[string]string) (string, error) {
 func (b *CopyBuilder) buildColumns() string {
 	columns := make([]string, len(b.attrs))
 	for i, attrName := range b.attrs {
-		columns[i] = resolveColumnName(attrName)
+		columns[i] = escapeColumnName(resolveColumnName(attrName))
 	}
 	return strings.Join(columns, ",")
 }

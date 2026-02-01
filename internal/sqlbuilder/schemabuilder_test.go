@@ -3,7 +3,8 @@ package sqlbuilder
 import "testing"
 
 func TestSchemaBuilder_Build(t *testing.T) {
-	xmlData := `<?xml version="1.0" encoding="utf-8"?>
+	t.Run("basic", func(t *testing.T) {
+		xmlData := `<?xml version="1.0" encoding="utf-8"?>
 <!-- edited with XMLSpy v2011 rel. 2 (http://www.altova.com) by TeaM DJiNN (TeaM DJiNN) -->
 <xs:dbSchema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:sch="http://purl.oclc.org/dsdl/schematron" xmlns:usch="http://www.unisoftware.ru/schematron-extensions" xmlns:sql="urn:schemas-microsoft-com:mapping-dbSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
 	<xs:element name="ADDRESSOBJECTS">
@@ -164,14 +165,14 @@ func TestSchemaBuilder_Build(t *testing.T) {
 </xs:dbSchema>
 `
 
-	builder := NewSchemaBuilder("tmp", "addr_obj")
+		builder := NewSchemaBuilder("tmp", "addr_obj")
 
-	got, err := builder.Build([]byte(xmlData))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+		got, err := builder.Build([]byte(xmlData))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 
-	want := `CREATE TABLE tmp.addr_obj (
+		want := `CREATE TABLE tmp.addr_obj (
 	id VARCHAR NOT NULL PRIMARY KEY,
 	objectid VARCHAR NOT NULL,
 	objectguid VARCHAR NOT NULL,
@@ -205,7 +206,150 @@ COMMENT ON COLUMN tmp.addr_obj.enddate IS 'Окончание действия �
 COMMENT ON COLUMN tmp.addr_obj.isactual IS 'Статус актуальности адресного объекта ФИАС';
 COMMENT ON COLUMN tmp.addr_obj.isactive IS 'Признак действующего адресного объекта';`
 
-	if got != want {
-		t.Fatalf("got %s, want %s", got, want)
-	}
+		if got != want {
+			t.Fatalf("got %s, want %s", got, want)
+		}
+	})
+
+	t.Run("normative_docs_kinds", func(t *testing.T) {
+		xmlData := `<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2011 rel. 2 (http://www.altova.com) by TeaM DJiNN (TeaM DJiNN) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="NDOCKINDS">
+		<xs:annotation>
+			<xs:documentation>Состав и структура файла со сведениями по видам нормативных документов</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="NDOCKIND" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Сведения по видам нормативных документов</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="NDOCKIND">
+		<xs:complexType>
+			<xs:attribute name="ID" type="xs:integer" use="required">
+				<xs:annotation>
+					<xs:documentation>Идентификатор записи</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="NAME" use="required">
+				<xs:annotation>
+					<xs:documentation>Наименование</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="500"/>
+						<xs:minLength value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
+`
+
+		builder := NewSchemaBuilder("tmp", "normative_docs_kinds")
+
+		got, err := builder.Build([]byte(xmlData))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		want := `CREATE TABLE tmp.normative_docs_kinds (
+	id VARCHAR NOT NULL PRIMARY KEY,
+	name VARCHAR NOT NULL
+);
+COMMENT ON TABLE tmp.normative_docs_kinds IS 'Сведения по видам нормативных документов';
+COMMENT ON COLUMN tmp.normative_docs_kinds.id IS 'Идентификатор записи';
+COMMENT ON COLUMN tmp.normative_docs_kinds.name IS 'Наименование';`
+
+		if got != want {
+			t.Fatalf("got %s, want %s", got, want)
+		}
+	})
+
+	t.Run("normative_docs_types", func(t *testing.T) {
+		xmlData := `<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2011 rel. 2 (http://www.altova.com) by TeaM DJiNN (TeaM DJiNN) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="NDOCTYPES">
+		<xs:annotation>
+			<xs:documentation>Состав и структура файла со сведениями по типам нормативных документов</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="NDOCTYPE" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Сведения по типам нормативных документов</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="NDOCTYPE">
+		<xs:complexType>
+			<xs:attribute name="ID" type="xs:integer" use="required">
+				<xs:annotation>
+					<xs:documentation>Идентификатор записи</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="NAME" use="required">
+				<xs:annotation>
+					<xs:documentation>Наименование</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="500"/>
+						<xs:minLength value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="STARTDATE" use="required">
+				<xs:annotation>
+					<xs:documentation>Дата начала действия записи</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:date"/>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="ENDDATE" use="required">
+				<xs:annotation>
+					<xs:documentation>Дата окончания действия записи</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:date"/>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
+`
+
+		builder := NewSchemaBuilder("tmp", "normative_docs_types")
+
+		got, err := builder.Build([]byte(xmlData))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		want := `CREATE TABLE tmp.normative_docs_types (
+	id VARCHAR NOT NULL PRIMARY KEY,
+	name VARCHAR NOT NULL,
+	startdate VARCHAR NOT NULL,
+	enddate VARCHAR NOT NULL
+);
+COMMENT ON TABLE tmp.normative_docs_types IS 'Сведения по типам нормативных документов';
+COMMENT ON COLUMN tmp.normative_docs_types.id IS 'Идентификатор записи';
+COMMENT ON COLUMN tmp.normative_docs_types.name IS 'Наименование';
+COMMENT ON COLUMN tmp.normative_docs_types.startdate IS 'Дата начала действия записи';
+COMMENT ON COLUMN tmp.normative_docs_types.enddate IS 'Дата окончания действия записи';`
+
+		if got != want {
+			t.Fatalf("got %s, want %s", got, want)
+		}
+	})
 }

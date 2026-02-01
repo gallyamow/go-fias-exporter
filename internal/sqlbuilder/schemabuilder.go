@@ -26,10 +26,23 @@ func (b *SchemaBuilder) Build(data []byte) (string, error) {
 		panic(err)
 	}
 
-	rootEl := schema.Element
-	attrs := rootEl.ComplexType.Sequence.Elements[0].ComplexType.Attributes
+	var attrs []attribute
+	var descr string
 
-	res := fmt.Sprintf("CREATE TABLE %s (\n%s\n);\n%s;\n%s", b.fullTable, b.buildColumns(attrs), b.buildTableComment(rootEl.Annotation.Documentation), b.buildColumnComments(attrs))
+	// (hardcoded)
+	if b.table == "normative_docs_kinds" || b.table == "normative_docs_types" {
+		attrs = schema.Element[1].ComplexType.Attributes
+		descr = schema.Element[0].ComplexType.Sequence.Elements[0].Annotation.Documentation
+	} else {
+		attrs = schema.Element[0].ComplexType.Sequence.Elements[0].ComplexType.Attributes
+		descr = schema.Element[0].Annotation.Documentation
+	}
+
+	if len(attrs) == 0 {
+		return "", fmt.Errorf("empty attrs for '%s'", b.table)
+	}
+
+	res := fmt.Sprintf("CREATE TABLE %s (\n%s\n);\n%s;\n%s", b.fullTable, b.buildColumns(attrs), b.buildTableComment(descr), b.buildColumnComments(attrs))
 	return res, nil
 }
 
@@ -46,7 +59,7 @@ func (b *SchemaBuilder) buildColumn(attr attribute) string {
 	var sb strings.Builder
 	columnName := resolveColumnName(attr.Name)
 
-	sb.WriteString(columnName)
+	sb.WriteString(escapeColumnName(columnName))
 	sb.WriteString(" ")
 
 	sb.WriteString(xsdTypeToSQL(attr.Type))
@@ -95,7 +108,7 @@ func xsdTypeToSQL(xsdType string) string {
 }
 
 type schema struct {
-	Element element `xml:"element"`
+	Element []element `xml:"element"`
 }
 
 type element struct {

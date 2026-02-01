@@ -101,7 +101,7 @@ func handleDataFile(ctx context.Context, cfg *config.Config, tableName string, f
 
 		// <ITEMS> can be empty, wait EOF
 		if len(items) == 0 {
-			continue
+			return totalRows, nil
 		}
 
 		if sqlBuilder == nil {

@@ -16,20 +16,27 @@ func ResolveTableName(filename string) (string, error) {
 	base := strings.TrimSuffix(filename, filepath.Ext(filename))
 
 	re := regexp.MustCompile(`(?i)^AS_([A-Z_]+)_\d*`)
-	if m := re.FindStringSubmatch(base); len(m) == 2 {
-		return strings.ToLower(m[1]), nil
+	m := re.FindStringSubmatch(base)
+	if len(m) != 2 {
+		return "", fmt.Errorf("failed to resolve table name by filename %s", filename)
 	}
 
-	return "", fmt.Errorf("cannot resolve table name from filename: %s", filename)
+	tableName := strings.ToLower(m[1])
+
+	switch tableName {
+	// (hardcoded)
+	case "rooms_params", "carplaces_params", "addr_obj_params", "apartments_params", "houses_params", "steads_params":
+		return "param", nil
+	default:
+		return tableName, nil
+	}
 }
 
 // resolveColumnName converts an attribute name into a safe SQL column identifier
-// Using double quotes is important (see DESC).
-// ITEM_ID => "item_id"
-// CHANGEID => "changeid"
-// DESC => "desc"
+// ITEM_ID => item_id
+// CHANGEID => changeid
 func resolveColumnName(attrName string) string {
-	return fmt.Sprintf(`"%s"`, strings.ToLower(attrName))
+	return strings.ToLower(attrName)
 }
 
 // resolvePrimaryKey resolves primary key by table name.
@@ -59,6 +66,14 @@ func buildFullTableName(dbSchema string, tableName string) string {
 		return fmt.Sprintf("%s.%s", dbSchema, tableName)
 	}
 	return tableName
+}
+
+func escapeColumnName(c string) string {
+	// (hardcoded)
+	if c == "desc" {
+		return fmt.Sprintf(`"%s"`, c)
+	}
+	return c
 }
 
 func escapeString(s string) string {
