@@ -29,7 +29,7 @@ fias-exporter [flags] <путь-к-выгрузке-ФИАС>
 |----------------|--------------|--------------------------------------------------------------------------------------------------------------------|
 | `--mode`       | `copy`       | Режим экспорта: `schema` — генерация `CREATE TABLE`, `copy` — `COPY FROM STDIN`, `upsert` — `INSERT … ON CONFLICT` |
 | `--db-schema`  | `public`     | Целевая схема базы данных                                                                                          |
-| `--batch-size` | `1000`       | Количество записей в одном батче                                                                                   |
+| `--batch-size` | `1000`       | Количество записей в одном batch                                                                                   |
 
 ## Пример
 
@@ -40,11 +40,16 @@ docker run --name gar \
   -e POSTGRES_HOST_AUTH_METHOD=trust \
   -d postgres:latest
 
-# создание схемы и таблиц 
+# создание схемы (если не хотите в public)
 echo 'CREATE SCHEMA tmp;' | docker exec -i gar psql -U postgres
+
+# импорт таблиц в созданную схему
 ./fias-exporter --mode schema --db-schema tmp ./example/gar_schemas | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 
-# потоковый импорт данных
+# потоковый импорт данных в созданные таблицы
 ./fias-exporter --mode copy --db-schema tmp ./example/gar_data | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 ```
 
+## TODO
+
+* обработать файлы в корне архива (для них нет схем создания таблиц)
