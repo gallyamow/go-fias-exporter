@@ -16,9 +16,6 @@ Transforms FIAS XML dumps into SQL suitable for PostgreSQL import.
 
 ```shell
 make build
-
-# Or install directly
-go install github.com/gallywow/go-fias-exporter@latest
 ```
 
 ## Usage
