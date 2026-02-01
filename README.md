@@ -1,6 +1,6 @@
 ## go-fias-exporter
 
-Transforms FIAS XML dumps into SQL suitable for PostgreSQL import.
+Transforms FIAS GAR XML dumps into SQL suitable for PostgreSQL import.
 
 ## Features
 
