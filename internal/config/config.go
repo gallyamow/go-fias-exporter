@@ -14,27 +14,28 @@ var (
 const (
 	ModeCopy   = "copy"
 	ModeUpsert = "upsert"
+	ModeSchema = "schema"
 )
 
 type Config struct {
 	Path      string
 	Mode      string
-	Schema    string
+	DbSchema  string
 	BatchSize int
 }
 
 func (c *Config) String() string {
-	return fmt.Sprintf("Path: %s, Mode: %s, Schema: %s, BatchSize: %d",
+	return fmt.Sprintf("Path: %s, Mode: %s, DbSchema: %s, BatchSize: %d",
 		c.Path,
 		c.Mode,
-		c.Schema,
+		c.DbSchema,
 		c.BatchSize,
 	)
 }
 
 func ParseFlags() (*Config, error) {
-	mode := flag.String("mode", ModeCopy, "mode copy|upsert")
-	schema := flag.String("schema", "", "database schema")
+	mode := flag.String("mode", ModeCopy, "mode create|copy|upsert")
+	dbSchema := flag.String("db-schema", "", "database dbSchema")
 	batchSize := flag.Int("batch-size", 1000, "batch size")
 
 	flag.Parse()
@@ -48,7 +49,7 @@ func ParseFlags() (*Config, error) {
 		return nil, ErrorPathRequired
 	}
 
-	if *mode != ModeCopy && *mode != ModeUpsert {
+	if *mode != ModeCopy && *mode != ModeUpsert && *mode != ModeSchema {
 		return nil, fmt.Errorf("invalid mode '%s'", *mode)
 	}
 
@@ -59,7 +60,7 @@ func ParseFlags() (*Config, error) {
 	return &Config{
 		Path:      path,
 		Mode:      *mode,
-		Schema:    *schema,
+		DbSchema:  *dbSchema,
 		BatchSize: *batchSize,
 	}, nil
 }

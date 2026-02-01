@@ -7,7 +7,6 @@ func TestUpsertBuilder_Build(t *testing.T) {
 		builder := NewUpsertBuilder(
 			"tmp",
 			"test_table",
-			"id",
 			[]string{"ID", "NAME"},
 		)
 
@@ -33,41 +32,10 @@ func TestUpsertBuilder_Build(t *testing.T) {
 		}
 	})
 
-	t.Run("no primary key", func(t *testing.T) {
-		builder := NewUpsertBuilder(
-			"tmp",
-			"test_table",
-			"",
-			[]string{"FIELD", "NAME"},
-		)
-
-		rows := []map[string]string{
-			{
-				"FIELD": "1",
-				"NAME":  "Alice",
-			},
-			{
-				"FIELD": "2",
-				"NAME":  "Bob",
-			},
-		}
-
-		got, err := builder.Build(rows)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-
-		want := `INSERT INTO tmp.test_table (field,name) VALUES ('1','Alice'),('2','Bob')`
-		if got != want {
-			t.Fatalf("got %s, want %s", got, want)
-		}
-	})
-
 	t.Run("escape values", func(t *testing.T) {
 		builder := NewUpsertBuilder(
 			"tmp",
 			"test_table",
-			"id",
 			[]string{"ID", "NAME"},
 		)
 
@@ -93,11 +61,10 @@ func TestUpsertBuilder_Build(t *testing.T) {
 		}
 	})
 
-	t.Run("no schema", func(t *testing.T) {
+	t.Run("no dbSchema", func(t *testing.T) {
 		builder := NewUpsertBuilder(
 			"",
 			"test_table",
-			"id",
 			[]string{"ID", "NAME"},
 		)
 
@@ -128,7 +95,6 @@ func TestUpsertBuilder_PreservesColumnOrder(t *testing.T) {
 	builder := NewUpsertBuilder(
 		"tmp",
 		"test_table",
-		"id",
 		[]string{"NAME", "ID"},
 	)
 

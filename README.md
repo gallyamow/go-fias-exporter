@@ -24,11 +24,11 @@ make build
 fias-exporter [flags] <path-to-fias-dump>
 ```
 
-| Flag           | Default  | Description                                                              |
-|----------------|----------|--------------------------------------------------------------------------|
-| `--mode`       | `copy`   | Export mode: `copy` (COPY FROM STDIN) or `upsert` (INSERT … ON CONFLICT) |
-| `--schema`     | `public` | Target database schema                                                   |
-| `--batch-size` | `1000`   | Number of records per batch                                              |
+| Flag           | Default  | Description                                                                                                 |
+|----------------|----------|-------------------------------------------------------------------------------------------------------------|
+| `--mode`       | `copy`   | Export mode: `schema` - generates CREATE TABLE, `copy` (COPY FROM STDIN) or `upsert` (INSERT … ON CONFLICT) |
+| `--db-schema`  | `public` | Target database schema                                                                                      |
+| `--batch-size` | `1000`   | Number of records per batch                                                                                 |
 
 ### Example
 
@@ -40,10 +40,11 @@ docker run --name gar \
   -d postgres:latest
 
 # create tables
-docker exec -i gar psql -U postgres < ./create-tmp-tables.sql
+echo 'CREATE SCHEMA tmp;' | docker exec -i gar psql -U postgres
+./fias-exporter --mode schema --db-schema tmp ./example/gar_schemas | docker exec -i gar psql -U postgres
 
 # pipelined data import
-./fias-exporter --mode copy --schema tmp ./examples | docker exec -i gar psql -U postgres
+./fias-exporter --mode copy --db-schema tmp ./example/gar_data | docker exec -i gar psql -U postgres
 ```
 
 ### TODO

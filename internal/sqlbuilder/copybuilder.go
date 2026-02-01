@@ -8,17 +8,17 @@ import (
 )
 
 type CopyBuilder struct {
-	schema     string
+	dbSchema   string
 	table      string
 	primaryKey string
 	attrs      []string
 }
 
-func NewCopyBuilder(schema string, tablename string, primaryKey string, attrs []string) *CopyBuilder {
+func NewCopyBuilder(dbSchema string, tableName string, attrs []string) *CopyBuilder {
 	return &CopyBuilder{
-		schema:     schema,
-		table:      tablename,
-		primaryKey: primaryKey,
+		dbSchema:   dbSchema,
+		table:      tableName,
+		primaryKey: resolvePrimaryKey(tableName),
 		attrs:      attrs,
 	}
 }
@@ -33,7 +33,7 @@ func (b *CopyBuilder) Build(rows []map[string]string) (string, error) {
 		return "", err
 	}
 
-	sql := fmt.Sprintf("COPY %s (%s) FROM STDIN WITH (FORMAT csv);\n%s\\.", b.buildTablename(), b.buildColumns(), valuesStatement)
+	sql := fmt.Sprintf("COPY %s (%s) FROM STDIN WITH (FORMAT csv);\n%s\\.", buildFullTableName(b.dbSchema, b.table), b.buildColumns(), valuesStatement)
 
 	return sql, nil
 }
@@ -44,6 +44,7 @@ func (b *CopyBuilder) buildValues(rows []map[string]string) (string, error) {
 
 	for _, row := range rows {
 		vals := make([]string, len(b.attrs))
+
 		// to keep order of columns
 		for i, attrName := range b.attrs {
 			vals[i] = row[attrName]
@@ -59,17 +60,10 @@ func (b *CopyBuilder) buildValues(rows []map[string]string) (string, error) {
 	return buf.String(), nil
 }
 
-func (b *CopyBuilder) buildTablename() string {
-	if b.schema != "" {
-		return fmt.Sprintf("%s.%s", b.schema, b.table)
-	}
-	return b.table
-}
-
 func (b *CopyBuilder) buildColumns() string {
 	columns := make([]string, len(b.attrs))
 	for i, attrName := range b.attrs {
-		columns[i] = ResolveColumnName(attrName)
+		columns[i] = resolveColumnName(attrName)
 	}
 	return strings.Join(columns, ",")
 }

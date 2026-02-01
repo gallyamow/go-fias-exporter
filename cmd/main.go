@@ -32,7 +32,7 @@ func main() {
 
 	fmt.Println("-- >>>")
 	fmt.Printf("-- Version: %s\n", version)
-	fmt.Printf("-- %s", cfg)
+	fmt.Printf("-- %s\n", cfg)
 	fmt.Printf("-- Started at: %s\n", time.Now())
 	fmt.Println("-- <<<")
 	fmt.Println()
@@ -55,20 +55,35 @@ func main() {
 
 		tableName, err := sqlbuilder.ResolveTableName(fileName)
 		if err != nil {
-			log.Fatalf("Failed to resolve tablename: %v", err)
+			log.Fatalf("Failed to resolve table name: %v", err)
 			return
 		}
 
 		fmt.Printf("-- Started: file %q (%d bytes), table %q\n", fileName, fileInfo.Size, tableName)
-		handleFile(ctx, cfg, tableName, fileInfo.Path)
+
+		switch cfg.Mode {
+		case config.ModeCopy, config.ModeUpsert:
+			totalRows, err := handleDataFile(ctx, cfg, tableName, fileInfo.Path)
+			if err != nil && err != io.EOF {
+				if errors.Is(err, context.Canceled) {
+					fmt.Println("-- Canceled")
+				}
+				log.Panic(err)
+			}
+			fmt.Printf("-- %d rows\n", totalRows)
+		case config.ModeSchema:
+			handleSchemaFile(ctx, cfg, tableName, fileInfo.Path)
+		}
+
+		fmt.Printf("-- Ended: %q\n", fileInfo.Path)
+		fmt.Println()
 	}
 }
 
-func handleFile(ctx context.Context, cfg *config.Config, tableName string, filePath string) {
+func handleDataFile(ctx context.Context, cfg *config.Config, tableName string, filePath string) (int, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		log.Panicf("Failed to open file: %v", err)
-		return
+		return 0, err
 	}
 	defer file.Close()
 
@@ -80,23 +95,23 @@ func handleFile(ctx context.Context, cfg *config.Config, tableName string, fileP
 		items, err := iterator.Next(ctx, cfg.BatchSize)
 		if err != nil && err != io.EOF {
 			if errors.Is(err, context.Canceled) {
-				fmt.Println("-- Canceled")
-				return
+				return totalRows, err
 			}
+		}
 
-			log.Panicf("Failed to read file: %v", err)
-			return
+		// <ITEMS> can be empty, wait EOF
+		if len(items) == 0 {
+			continue
 		}
 
 		if sqlBuilder == nil {
-			sqlBuilder = resolveSQLBuilder(cfg, tableName, items[0])
+			sqlBuilder = resolveDataBuilder(cfg, tableName, items[0])
 		}
 
 		if len(items) > 0 {
 			sql, err := sqlBuilder.Build(items)
 			if err != nil {
-				log.Panicf("Failed to build sql: %v", err)
-				return
+				return totalRows, err
 			}
 
 			fmt.Println(sql)
@@ -104,23 +119,36 @@ func handleFile(ctx context.Context, cfg *config.Config, tableName string, fileP
 		}
 
 		if err == io.EOF {
-			fmt.Printf("-- Ended: %q (%d rows)\n", filePath, totalRows)
-			fmt.Println()
-			break
+			return totalRows, err
 		}
 	}
 }
 
-func resolveSQLBuilder(cfg *config.Config, tableName string, item map[string]string) sqlbuilder.Builder {
-	primaryKey := sqlbuilder.ResolvePrimaryKey(tableName, item)
+func handleSchemaFile(ctx context.Context, cfg *config.Config, tableName string, filePath string) {
+	sqlBuilder := sqlbuilder.NewSchemaBuilder(cfg.DbSchema, tableName)
+
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		panic(err)
+	}
+
+	sql, err := sqlBuilder.Build(data)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(sql)
+}
+
+func resolveDataBuilder(cfg *config.Config, tableName string, item map[string]string) sqlbuilder.Builder {
 	attrs := sqlbuilder.ResolveAttrs(item)
 
 	switch cfg.Mode {
 	case config.ModeCopy:
-		return sqlbuilder.NewCopyBuilder(cfg.Schema, tableName, primaryKey, attrs)
+		return sqlbuilder.NewCopyBuilder(cfg.DbSchema, tableName, attrs)
 	case config.ModeUpsert:
-		return sqlbuilder.NewUpsertBuilder(cfg.Schema, tableName, primaryKey, attrs)
+		return sqlbuilder.NewUpsertBuilder(cfg.DbSchema, tableName, attrs)
 	default:
-		panic("Failed to resolve builder")
+		panic(fmt.Sprintf("failed to resolve builder for %q", cfg.Mode))
 	}
 }

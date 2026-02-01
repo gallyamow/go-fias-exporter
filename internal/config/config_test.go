@@ -51,6 +51,24 @@ func TestParseFlags_UpsertModeWithDB(t *testing.T) {
 	}
 }
 
+func TestParseFlags_SchemaModeWithDB(t *testing.T) {
+	resetFlags()
+	os.Args = []string{
+		"cmd",
+		"-mode=schema",
+		"/data/input",
+	}
+
+	cfg, err := ParseFlags()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if cfg.Mode != ModeSchema {
+		t.Fatalf("unexpected mode: %s", cfg.Mode)
+	}
+}
+
 func TestParseFlags_PathRequired(t *testing.T) {
 	resetFlags()
 	os.Args = []string{

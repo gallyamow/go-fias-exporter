@@ -78,7 +78,7 @@ func TestResolveColumnName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := ResolveColumnName(tt.attrName)
+			got := resolveColumnName(tt.attrName)
 
 			if got != tt.want {
 				t.Fatalf("expected %s, got %s", tt.want, got)
@@ -122,7 +122,7 @@ func TestResolvePrimaryKey(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := ResolvePrimaryKey(tt.table, tt.row)
+			got := resolvePrimaryKey(tt.table)
 
 			if got != tt.want {
 				t.Fatalf("expected %s, got %s", tt.want, got)

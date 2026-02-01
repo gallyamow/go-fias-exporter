@@ -6,17 +6,17 @@ import (
 )
 
 type UpsertBuilder struct {
-	schema     string
+	dbSchema   string
 	table      string
 	primaryKey string
 	attrs      []string
 }
 
-func NewUpsertBuilder(schema string, tablename string, primaryKey string, attrs []string) *UpsertBuilder {
+func NewUpsertBuilder(dbSchema string, tableName string, attrs []string) *UpsertBuilder {
 	return &UpsertBuilder{
-		schema:     schema,
-		table:      tablename,
-		primaryKey: primaryKey,
+		dbSchema:   dbSchema,
+		table:      tableName,
+		primaryKey: resolvePrimaryKey(tableName),
 		attrs:      attrs,
 	}
 }
@@ -31,7 +31,7 @@ func (b *UpsertBuilder) Build(rows []map[string]string) (string, error) {
 		return "", err
 	}
 
-	res := fmt.Sprintf("INSERT INTO %s (%s) VALUES %s", b.buildTablename(), b.buildColumns(), valuesStatement)
+	res := fmt.Sprintf("INSERT INTO %s (%s) VALUES %s", buildFullTableName(b.dbSchema, b.table), b.buildColumns(), valuesStatement)
 	if b.primaryKey != "" {
 		res += " " + b.buildOnConflict()
 	}
@@ -43,13 +43,13 @@ func (b *UpsertBuilder) buildValues(rows []map[string]string) (string, error) {
 	var res []string
 
 	for _, row := range rows {
-		var vals []string
+		vals := make([]string, len(b.attrs))
 
 		// to keep order of columns
-		for _, attrName := range b.attrs {
+		for i, attrName := range b.attrs {
 			// (to keep simple quote for all values)
-			escapedValue := strings.ReplaceAll(row[attrName], "'", "''")
-			vals = append(vals, fmt.Sprintf("'%s'", escapedValue))
+			escapedValue := escapeString(row[attrName])
+			vals[i] = fmt.Sprintf("'%s'", escapedValue)
 		}
 
 		res = append(res, fmt.Sprintf("(%s)", strings.Join(vals, ",")))
@@ -58,17 +58,10 @@ func (b *UpsertBuilder) buildValues(rows []map[string]string) (string, error) {
 	return strings.Join(res, ","), nil
 }
 
-func (b *UpsertBuilder) buildTablename() string {
-	if b.schema != "" {
-		return fmt.Sprintf("%s.%s", b.schema, b.table)
-	}
-	return b.table
-}
-
 func (b *UpsertBuilder) buildColumns() string {
 	columns := make([]string, len(b.attrs))
 	for i, attrName := range b.attrs {
-		columns[i] = ResolveColumnName(attrName)
+		columns[i] = resolveColumnName(attrName)
 	}
 	return strings.Join(columns, ",")
 }
@@ -76,7 +69,7 @@ func (b *UpsertBuilder) buildColumns() string {
 func (b *UpsertBuilder) buildOnConflict() string {
 	var setters []string
 	for _, attrName := range b.attrs {
-		column := ResolveColumnName(attrName)
+		column := resolveColumnName(attrName)
 		if column == b.primaryKey {
 			continue
 		}

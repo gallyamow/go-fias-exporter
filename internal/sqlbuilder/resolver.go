@@ -15,7 +15,7 @@ import (
 func ResolveTableName(filename string) (string, error) {
 	base := strings.TrimSuffix(filename, filepath.Ext(filename))
 
-	re := regexp.MustCompile(`(?i)^AS_([A-Z_]+)_\d{8}`)
+	re := regexp.MustCompile(`(?i)^AS_([A-Z_]+)_\d*`)
 	if m := re.FindStringSubmatch(base); len(m) == 2 {
 		return strings.ToLower(m[1]), nil
 	}
@@ -23,15 +23,18 @@ func ResolveTableName(filename string) (string, error) {
 	return "", fmt.Errorf("cannot resolve table name from filename: %s", filename)
 }
 
-// ResolveColumnName resolves column name from attr name.
-// ITEM_ID => item_id
-// CHANGEID => changeid
-func ResolveColumnName(attrName string) string {
-	return strings.ToLower(attrName)
+// resolveColumnName converts an attribute name into a safe SQL column identifier
+// Using double quotes is important (see DESC).
+// ITEM_ID => "item_id"
+// CHANGEID => "changeid"
+// DESC => "desc"
+func resolveColumnName(attrName string) string {
+	return fmt.Sprintf(`"%s"`, strings.ToLower(attrName))
 }
 
-// ResolvePrimaryKey resolves column name from first row.
-func ResolvePrimaryKey(tableName string, row map[string]string) string {
+// resolvePrimaryKey resolves primary key by table name.
+func resolvePrimaryKey(tableName string) string {
+	// (hardcoded)
 	switch tableName {
 	case "change_history":
 		return "changeid"
@@ -40,20 +43,7 @@ func ResolvePrimaryKey(tableName string, row map[string]string) string {
 	case "object_levels":
 		return "level"
 	}
-	// lots of tables used id as primary key
-	if _, ok := row["ID"]; ok {
-		return "id"
-	}
-
-	return ""
-}
-
-func ResolveColumns(row map[string]string) []string {
-	var res []string
-	for k := range maps.Keys(row) {
-		res = append(res, ResolveColumnName(k))
-	}
-	return res
+	return "id"
 }
 
 func ResolveAttrs(row map[string]string) []string {
@@ -62,4 +52,15 @@ func ResolveAttrs(row map[string]string) []string {
 		res = append(res, k)
 	}
 	return res
+}
+
+func buildFullTableName(dbSchema string, tableName string) string {
+	if dbSchema != "" {
+		return fmt.Sprintf("%s.%s", dbSchema, tableName)
+	}
+	return tableName
+}
+
+func escapeString(s string) string {
+	return strings.ReplaceAll(s, "'", "''")
 }

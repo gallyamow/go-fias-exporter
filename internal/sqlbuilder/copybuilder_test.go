@@ -3,11 +3,10 @@ package sqlbuilder
 import "testing"
 
 func TestCopyBuilder_Build(t *testing.T) {
-	t.Run("with schema", func(t *testing.T) {
+	t.Run("with dbSchema", func(t *testing.T) {
 		builder := NewCopyBuilder(
 			"tmp",
 			"test_table",
-			"id",
 			[]string{"ID", "NAME"},
 		)
 
@@ -36,11 +35,10 @@ func TestCopyBuilder_Build(t *testing.T) {
 		}
 	})
 
-	t.Run("no schema", func(t *testing.T) {
+	t.Run("no dbSchema", func(t *testing.T) {
 		builder := NewCopyBuilder(
 			"",
 			"test_table",
-			"id",
 			[]string{"ID", "NAME"},
 		)
 
@@ -74,7 +72,6 @@ func TestCopyBuilder_PreservesColumnOrder(t *testing.T) {
 	builder := NewCopyBuilder(
 		"tmp",
 		"test_table",
-		"id",
 		[]string{"NAME", "ID"},
 	)
 
