@@ -1,36 +1,37 @@
-## go-fias-exporter
+# go-fias-exporter
 
-Transforms FIAS GAR XML dumps into SQL suitable for PostgreSQL import.
+Преобразует XML-выгрузки ФИАС (ГАР) в SQL, пригодный для импорта в PostgreSQL.
 
-## Features
+## Возможности
 
-* Supports two export modes:
-  - COPY — fast bulk import using COPY FROM STDIN
-  - UPSERT — merge/update existing data using INSERT … ON CONFLICT
-* Configurable batch size for optimal performance
-* Generates SQL output for:
-  - saving to files
-  - direct pipelined import into PostgreSQL
+- Поддержка трех режимов экспорта:
+    - **schema** — генерация запросов на `CREATE TABLE`
+    - **copy** — генерация запросов на пакетный импорт с использованием `COPY FROM STDIN`
+    - **upsert** — генерация запросов добавление и обновление существующих данных через `INSERT … ON CONFLICT`
+- Настраиваемый размер батча для оптимальной производительности
+- Результат можно:
+    - сохранить в файлы
+    - передать `psql` для потокового импорта
 
-## Installation
+## Установка
 
 ```shell
 make build
 ```
 
-## Usage
+## Использование
 
 ```shell
-fias-exporter [flags] <path-to-fias-dump>
+fias-exporter [flags] <путь-к-выгрузке-ФИАС>
 ```
 
-| Flag           | Default  | Description                                                                                                 |
-|----------------|----------|-------------------------------------------------------------------------------------------------------------|
-| `--mode`       | `copy`   | Export mode: `schema` - generates CREATE TABLE, `copy` (COPY FROM STDIN) or `upsert` (INSERT … ON CONFLICT) |
-| `--db-schema`  | `public` | Target database schema                                                                                      |
-| `--batch-size` | `1000`   | Number of records per batch                                                                                 |
+| Флаг           | По умолчанию | Описание                                                                                                           |
+|----------------|--------------|--------------------------------------------------------------------------------------------------------------------|
+| `--mode`       | `copy`       | Режим экспорта: `schema` — генерация `CREATE TABLE`, `copy` — `COPY FROM STDIN`, `upsert` — `INSERT … ON CONFLICT` |
+| `--db-schema`  | `public`     | Целевая схема базы данных                                                                                          |
+| `--batch-size` | `1000`       | Количество записей в одном батче                                                                                   |
 
-### Example
+## Пример
 
 ```shell
 docker pull postgres:latest
@@ -39,14 +40,11 @@ docker run --name gar \
   -e POSTGRES_HOST_AUTH_METHOD=trust \
   -d postgres:latest
 
-# create tables
+# создание схемы и таблиц 
 echo 'CREATE SCHEMA tmp;' | docker exec -i gar psql -U postgres
-./fias-exporter --mode schema --db-schema tmp ./example/gar_schemas | docker exec -i gar psql -U postgres
+./fias-exporter --mode schema --db-schema tmp ./example/gar_schemas | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 
-# pipelined data import
-./fias-exporter --mode copy --db-schema tmp ./example/gar_data | docker exec -i gar psql -U postgres
+# потоковый импорт данных
+./fias-exporter --mode copy --db-schema tmp ./example/gar_data | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 ```
 
-### TODO
-
-- generate database tables from FIAS schemas with column type casting
