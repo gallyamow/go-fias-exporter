@@ -352,4 +352,172 @@ COMMENT ON COLUMN tmp.normative_docs_types.enddate IS 'Дата окончани
 			t.Fatalf("got %s, want %s", got, want)
 		}
 	})
+
+	t.Run("normative_docs", func(t *testing.T) {
+		xmlData := `<?xml version="1.0" encoding="utf-8"?>
+<!-- edited with XMLSpy v2011 rel. 2 (http://www.altova.com) by TeaM DJiNN (TeaM DJiNN) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:sch="http://purl.oclc.org/dsdl/schematron" xmlns:usch="http://www.unisoftware.ru/schematron-extensions" xmlns:sql="urn:schemas-microsoft-com:mapping-schema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NORMDOCS">
+		<xs:annotation>
+			<xs:documentation>Состав и структура файла со сведениями о нормативных документах, являющихся основанием присвоения адресному элементу наименования</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="NORMDOC" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Сведения о нормативном документе, являющемся основанием присвоения адресному элементу наименования</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="ID" use="required">
+							<xs:annotation>
+								<xs:documentation>Уникальный идентификатор документа</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:long">
+									<xs:totalDigits value="19"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="NAME" use="required">
+							<xs:annotation>
+								<xs:documentation>Наименование документа</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+									<xs:maxLength value="8000"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="DATE" type="xs:date" use="required">
+							<xs:annotation>
+								<xs:documentation>Дата документа</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="NUMBER" use="required">
+							<xs:annotation>
+								<xs:documentation>Номер документа</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+									<xs:maxLength value="150"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="TYPE" use="required">
+							<xs:annotation>
+								<xs:documentation>Тип документа</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="10"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="KIND" use="required">
+							<xs:annotation>
+								<xs:documentation>Вид документа</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="10"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="UPDATEDATE" type="xs:date" use="required">
+							<xs:annotation>
+								<xs:documentation>Дата обновления</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="ORGNAME" use="optional">
+							<xs:annotation>
+								<xs:documentation>Наименование органа создвшего нормативный документ</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="0"/>
+									<xs:maxLength value="500"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="REGNUM" use="optional">
+							<xs:annotation>
+								<xs:documentation>Номер государственной регистрации</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="0"/>
+									<xs:maxLength value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="REGDATE" type="xs:date" use="optional">
+							<xs:annotation>
+								<xs:documentation>Дата государственной регистрации</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="ACCDATE" type="xs:date" use="optional">
+							<xs:annotation>
+								<xs:documentation>Дата вступления в силу нормативного документа</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="COMMENT" use="optional">
+							<xs:annotation>
+								<xs:documentation>Комментарий</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="0"/>
+									<xs:maxLength value="8000"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
+`
+
+		builder := NewSchemaBuilder("tmp", "normative_docs")
+
+		got, err := builder.Build([]byte(xmlData))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		want := `CREATE TABLE tmp.normative_docs (
+	id VARCHAR NOT NULL PRIMARY KEY,
+	name VARCHAR,
+	date DATE NOT NULL,
+	number VARCHAR NOT NULL,
+	type VARCHAR NOT NULL,
+	kind VARCHAR NOT NULL,
+	updatedate DATE NOT NULL,
+	orgname VARCHAR,
+	regnum VARCHAR,
+	regdate DATE,
+	accdate DATE,
+	comment VARCHAR
+);
+COMMENT ON TABLE tmp.normative_docs IS 'Состав и структура файла со сведениями о нормативных документах, являющихся основанием присвоения адресному элементу наименования';
+COMMENT ON COLUMN tmp.normative_docs.id IS 'Уникальный идентификатор документа';
+COMMENT ON COLUMN tmp.normative_docs.name IS 'Наименование документа';
+COMMENT ON COLUMN tmp.normative_docs.date IS 'Дата документа';
+COMMENT ON COLUMN tmp.normative_docs.number IS 'Номер документа';
+COMMENT ON COLUMN tmp.normative_docs.type IS 'Тип документа';
+COMMENT ON COLUMN tmp.normative_docs.kind IS 'Вид документа';
+COMMENT ON COLUMN tmp.normative_docs.updatedate IS 'Дата обновления';
+COMMENT ON COLUMN tmp.normative_docs.orgname IS 'Наименование органа создвшего нормативный документ';
+COMMENT ON COLUMN tmp.normative_docs.regnum IS 'Номер государственной регистрации';
+COMMENT ON COLUMN tmp.normative_docs.regdate IS 'Дата государственной регистрации';
+COMMENT ON COLUMN tmp.normative_docs.accdate IS 'Дата вступления в силу нормативного документа';
+COMMENT ON COLUMN tmp.normative_docs.comment IS 'Комментарий';`
+
+		if got != want {
+			t.Fatalf("got %s, want %s", got, want)
+		}
+	})
 }

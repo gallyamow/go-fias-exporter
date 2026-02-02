@@ -8,6 +8,20 @@ import (
 	"strings"
 )
 
+// these values have some differences in building
+const (
+	TableRoomsParams      = "rooms_params"
+	TableCarplacesParams  = "carplaces_params"
+	TableAddrObjParams    = "addr_obj_params"
+	TableApartmentsParams = "apartments_params"
+	TableHousesParams     = "houses_params"
+	TableSteadsParams     = "steads_params"
+	TableChangeHistory    = "change_history"
+	TableReestrObjects    = "reestr_objects"
+	TableObjectLevels     = "object_levels"
+	TableNormativeDocs    = "normative_docs"
+)
+
 // ResolveTableName resolves table name from filename.
 // Examples:
 // - AS_ADDR_OBJ_20250626_bc6f64d9-fb28-40d6-8a99-57e44b920d07.XML => addr_obj
@@ -25,11 +39,19 @@ func ResolveTableName(filename string) (string, error) {
 
 	switch tableName {
 	// (hardcoded)
-	case "rooms_params", "carplaces_params", "addr_obj_params", "apartments_params", "houses_params", "steads_params":
+	case TableRoomsParams, TableCarplacesParams, TableAddrObjParams, TableApartmentsParams, TableHousesParams, TableSteadsParams:
 		return "param", nil
 	default:
 		return tableName, nil
 	}
+}
+
+func ResolveAttrs(row map[string]string) []string {
+	var res []string
+	for k := range maps.Keys(row) {
+		res = append(res, k)
+	}
+	return res
 }
 
 // resolveColumnName converts an attribute name into a safe SQL column identifier
@@ -43,22 +65,28 @@ func resolveColumnName(attrName string) string {
 func resolvePrimaryKey(tableName string) string {
 	// (hardcoded)
 	switch tableName {
-	case "change_history":
+	case TableChangeHistory:
 		return "changeid"
-	case "reestr_objects":
+	case TableReestrObjects:
 		return "objectid"
-	case "object_levels":
+	case TableObjectLevels:
 		return "level"
 	}
 	return "id"
 }
 
-func ResolveAttrs(row map[string]string) []string {
-	var res []string
-	for k := range maps.Keys(row) {
-		res = append(res, k)
+func resolveNullability(tableName string, columnName string, attr attribute) string {
+	// (hardcoded)
+	if tableName == TableNormativeDocs && columnName == "name" {
+		// example: /63_sql/AS_NORMATIVE_DOCS_20260127_29897f0f-87b4-43b9-bea9-54152f80d42f.sql:493710: ERROR:  null value in column "name" of relation "normative_docs" violates not-null constraint
+		return ""
 	}
-	return res
+
+	if attr.Use == "required" {
+		return "NOT NULL"
+	}
+
+	return ""
 }
 
 func buildFullTableName(dbSchema string, tableName string) string {
@@ -68,12 +96,12 @@ func buildFullTableName(dbSchema string, tableName string) string {
 	return tableName
 }
 
-func escapeColumnName(c string) string {
+func escapeColumnName(columnName string) string {
 	// (hardcoded)
-	if c == "desc" {
-		return fmt.Sprintf(`"%s"`, c)
+	if columnName == "desc" {
+		return fmt.Sprintf(`"%s"`, columnName)
 	}
-	return c
+	return columnName
 }
 
 func escapeString(s string) string {

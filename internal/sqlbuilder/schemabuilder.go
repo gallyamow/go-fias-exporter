@@ -63,8 +63,10 @@ func (b *SchemaBuilder) buildColumn(attr attribute) string {
 	sb.WriteString(" ")
 
 	sb.WriteString(xsdTypeToSQL(attr.Type))
-	if attr.Use == "required" {
-		sb.WriteString(" NOT NULL")
+
+	notNull := resolveNullability(b.table, columnName, attr)
+	if notNull != "" {
+		sb.WriteString(" " + notNull)
 	}
 
 	if columnName == b.primaryKey {
