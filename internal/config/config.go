@@ -36,7 +36,7 @@ func (c *Config) String() string {
 func ParseFlags() (*Config, error) {
 	mode := flag.String("mode", ModeCopy, "mode create|copy|upsert")
 	dbSchema := flag.String("db-schema", "", "database dbSchema")
-	batchSize := flag.Int("batch-size", 10000, "batch size")
+	batchSize := flag.Int("batch-size", 100000, "batch size")
 
 	flag.Parse()
 
