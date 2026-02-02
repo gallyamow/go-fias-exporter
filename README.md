@@ -40,13 +40,25 @@ docker run --name gar \
   -e POSTGRES_HOST_AUTH_METHOD=trust \
   -d postgres:latest
 
-# создание схемы (если не хотите в public)
+# 1) Создание схемы (если не хотите в public)
 echo 'CREATE SCHEMA tmp;' | docker exec -i gar psql -U postgres
 
-# импорт таблиц в созданную схему
+# 2) Импорт таблиц в созданную схему
 ./fias-exporter --mode schema --db-schema tmp ./example/gar_schemas | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 
-# потоковый импорт данных в созданные таблицы
+# По какой-то причине этой таблицы нет в gar_schemas
+echo 'CREATE TABLE tmp.addhouse_types (
+	id VARCHAR NOT NULL PRIMARY KEY,
+	name VARCHAR NOT NULL,
+	shortname VARCHAR,
+	"desc" VARCHAR,
+	updatedate DATE NOT NULL,
+	startdate DATE NOT NULL,
+	enddate DATE NOT NULL,
+	isactive BOOLEAN NOT NULL
+);' | docker exec -i gar psql -U postgres
+
+# 3) Потоковый импорт данных в созданные таблицы
 ./fias-exporter --mode copy --db-schema tmp ./example/gar_data | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 ```
 
