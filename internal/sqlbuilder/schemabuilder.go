@@ -7,16 +7,18 @@ import (
 )
 
 type SchemaBuilder struct {
-	table      string
-	fullTable  string
-	primaryKey string
+	table         string
+	fullTable     string
+	primaryKey    string
+	ignoreNotNull bool
 }
 
-func NewSchemaBuilder(dbSchema string, tableName string) *SchemaBuilder {
+func NewSchemaBuilder(dbSchema string, tableName string, ignoreNotNull bool) *SchemaBuilder {
 	return &SchemaBuilder{
-		table:      tableName,
-		fullTable:  buildFullTableName(dbSchema, tableName),
-		primaryKey: resolvePrimaryKey(tableName),
+		table:         tableName,
+		fullTable:     buildFullTableName(dbSchema, tableName),
+		primaryKey:    resolvePrimaryKey(tableName),
+		ignoreNotNull: ignoreNotNull,
 	}
 }
 
@@ -64,9 +66,11 @@ func (b *SchemaBuilder) buildColumn(attr attribute) string {
 
 	sb.WriteString(xsdTypeToSQL(attr.Type))
 
-	notNull := resolveNullability(b.table, columnName, attr)
-	if notNull != "" {
-		sb.WriteString(" " + notNull)
+	if !b.ignoreNotNull {
+		notNull := resolveNullability(b.table, columnName, attr)
+		if notNull != "" {
+			sb.WriteString(" " + notNull)
+		}
 	}
 
 	if columnName == b.primaryKey {

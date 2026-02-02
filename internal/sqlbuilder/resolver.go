@@ -20,6 +20,7 @@ const (
 	TableReestrObjects    = "reestr_objects"
 	TableObjectLevels     = "object_levels"
 	TableNormativeDocs    = "normative_docs"
+	TableSteads           = "steads"
 )
 
 // ResolveTableName resolves table name from filename.
@@ -83,7 +84,7 @@ func resolveNullability(tableName string, columnName string, attr attribute) str
 	}
 
 	// example: ERROR:  null value in column "number" of relation "steads" violates not-null constraint
-	if tableName == "steads" && columnName == "number" {
+	if tableName == TableSteads && columnName == "number" {
 		// example: /63_sql/AS_NORMATIVE_DOCS_20260127_29897f0f-87b4-43b9-bea9-54152f80d42f.sql:493710: ERROR:  null value in column "name" of relation "normative_docs" violates not-null constraint
 		return ""
 	}

@@ -125,7 +125,7 @@ func handleDataFile(ctx context.Context, cfg *config.Config, tableName string, f
 }
 
 func handleSchemaFile(ctx context.Context, cfg *config.Config, tableName string, filePath string) {
-	sqlBuilder := sqlbuilder.NewSchemaBuilder(cfg.DbSchema, tableName)
+	sqlBuilder := sqlbuilder.NewSchemaBuilder(cfg.DbSchema, tableName, cfg.IgnoreNotNull)
 
 	data, err := os.ReadFile(filePath)
 	if err != nil {
