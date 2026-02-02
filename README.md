@@ -61,7 +61,3 @@ echo 'CREATE TABLE tmp.addhouse_types (
 # 3) Потоковый импорт данных в созданные таблицы
 ./fias-exporter --mode copy --db-schema tmp ./example/gar_data | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 ```
-
-## TODO
-
-* обработать файлы в корне архива (для них нет схем создания таблиц)
