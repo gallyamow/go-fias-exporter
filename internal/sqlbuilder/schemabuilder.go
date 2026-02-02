@@ -25,7 +25,11 @@ func NewSchemaBuilder(dbSchema string, tableName string, ignoreNotNull bool) *Sc
 func (b *SchemaBuilder) Build(data []byte) (string, error) {
 	var schema schema
 	if err := xml.Unmarshal(data, &schema); err != nil {
-		panic(err)
+		return "", err
+	}
+
+	if len(schema.Element) == 0 {
+		return "", fmt.Errorf("invalid schema attrs for '%s'", b.table)
 	}
 
 	var attrs []attribute

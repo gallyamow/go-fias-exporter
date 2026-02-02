@@ -68,11 +68,13 @@ func main() {
 				if errors.Is(err, context.Canceled) {
 					fmt.Println("-- Canceled")
 				}
-				log.Panic(err)
+				log.Fatalf("Failed to handle data file: %v", err)
 			}
 			fmt.Printf("-- %d rows\n", totalRows)
 		case config.ModeSchema:
-			handleSchemaFile(ctx, cfg, tableName, fileInfo.Path)
+			if err = handleSchemaFile(ctx, cfg, tableName, fileInfo.Path); err != nil {
+				log.Fatalf("Failed to handle schema file: %v", err)
+			}
 		}
 
 		fmt.Printf("-- Ended: %q\n", fileInfo.Path)
@@ -124,20 +126,21 @@ func handleDataFile(ctx context.Context, cfg *config.Config, tableName string, f
 	}
 }
 
-func handleSchemaFile(ctx context.Context, cfg *config.Config, tableName string, filePath string) {
+func handleSchemaFile(ctx context.Context, cfg *config.Config, tableName string, filePath string) error {
 	sqlBuilder := sqlbuilder.NewSchemaBuilder(cfg.DbSchema, tableName, cfg.IgnoreNotNull)
 
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	sql, err := sqlBuilder.Build(data)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	fmt.Println(sql)
+	return nil
 }
 
 func resolveDataBuilder(cfg *config.Config, tableName string, item map[string]string) sqlbuilder.Builder {
