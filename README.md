@@ -2,6 +2,8 @@
 
 Преобразует XML-выгрузки ФИАС (ГАР) в SQL, пригодный для импорта в PostgreSQL.
 
+<a href="https://pkg.go.dev/github.com/gallyamow/go-fias-exporter"><img src="https://pkg.go.dev/badge/github.com/gallyamow/go-fias-exporter.svg" alt="Go Reference"></a>
+
 ## Возможности
 
 - Поддержка трех режимов экспорта:
