@@ -31,12 +31,18 @@ func (b *UpsertBuilder) Build(rows []map[string]string) (string, error) {
 		return "", err
 	}
 
-	res := fmt.Sprintf("INSERT INTO %s (%s) VALUES %s", buildFullTableName(b.dbSchema, b.table), b.buildColumns(), valuesStatement)
+	var sb strings.Builder
+
+	sb.WriteString(fmt.Sprintf("INSERT INTO %s (%s) VALUES %s", buildFullTableName(b.dbSchema, b.table), b.buildColumns(), valuesStatement))
+
 	if b.primaryKey != "" {
-		res += " " + b.buildOnConflict()
+		sb.WriteString(" ")
+		sb.WriteString(b.buildOnConflict())
 	}
 
-	return res, nil
+	sb.WriteString(";")
+
+	return sb.String(), nil
 }
 
 func (b *UpsertBuilder) buildValues(rows []map[string]string) (string, error) {
@@ -69,7 +75,7 @@ func (b *UpsertBuilder) buildColumns() string {
 func (b *UpsertBuilder) buildOnConflict() string {
 	var setters []string
 	for _, attrName := range b.attrs {
-		column := resolveColumnName(attrName)
+		column := escapeColumnName(resolveColumnName(attrName))
 		if column == b.primaryKey {
 			continue
 		}
