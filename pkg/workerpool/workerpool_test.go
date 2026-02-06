@@ -63,7 +63,7 @@ func TestRunWithWorkers_ContextCancel(t *testing.T) {
 		return job * 2
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Millisecond)
 	defer cancel()
 
 	resCh := workerpool.RunWithWorkers[int, int](ctx, jobCh, handler, 2)
