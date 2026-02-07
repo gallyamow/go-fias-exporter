@@ -34,7 +34,7 @@ fias-exporter [flags] <путь-к-выгрузке-ФИАС>
 | `--batch-size`      | `1000000`    | Количество записей в одном batch.                                                                                   |
 | `--ignore-not-null` | false        | Игнорировать ли обработку `NOT NULL` по `use="required"` при определении колонок.                                   |
 
-## Пример
+## Пример для postgresql
 
 ```shell
 docker pull postgres:latest
@@ -47,7 +47,7 @@ docker run --name gar \
 echo 'CREATE SCHEMA tmp;' | docker exec -i gar psql -U postgres
 
 # 2) Импорт таблиц в созданную схему
-./fias-exporter --mode schema --db-schema tmp ./example/gar_schemas | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
+./fias-exporter --mode schema --db-type psql --db-schema tmp ./example/gar_schemas | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 
 # По какой-то причине этой таблицы нет в gar_schemas
 echo 'CREATE TABLE tmp.addhouse_types (
@@ -62,7 +62,7 @@ echo 'CREATE TABLE tmp.addhouse_types (
 );' | docker exec -i gar psql -U postgres
 
 # 3) Потоковый импорт данных в созданные таблицы
-./fias-exporter --mode copy --db-schema tmp ./example/gar_data | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
+./fias-exporter --mode copy --db-type psql --db-schema tmp ./example/gar_data | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 ```
 
 ## Примечания

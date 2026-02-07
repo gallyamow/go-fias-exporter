@@ -11,14 +11,16 @@ type SchemaBuilder struct {
 	fullTable     string
 	primaryKey    string
 	ignoreNotNull bool
+	driver        Driver
 }
 
-func NewSchemaBuilder(dbSchema string, tableName string, ignoreNotNull bool) *SchemaBuilder {
+func NewSchemaBuilder(dbSchema string, tableName string, ignoreNotNull bool, driver Driver) *SchemaBuilder {
 	return &SchemaBuilder{
 		table:         tableName,
 		fullTable:     buildFullTableName(dbSchema, tableName),
 		primaryKey:    resolvePrimaryKey(tableName),
 		ignoreNotNull: ignoreNotNull,
+		driver:        driver,
 	}
 }
 
@@ -48,17 +50,13 @@ func (b *SchemaBuilder) Build(data []byte) (string, error) {
 		return "", fmt.Errorf("empty attrs for '%s'", b.table)
 	}
 
-	res := fmt.Sprintf("CREATE TABLE %s (\n%s\n);\n%s;\n%s", b.fullTable, b.buildColumns(attrs), b.buildTableComment(descr), b.buildColumnComments(attrs))
+	res := fmt.Sprintf("CREATE TABLE %s (\n%s\n);\n%s;\n%s",
+		b.fullTable,
+		b.buildColumns(attrs),
+		b.driver.BuildTableComment(b.fullTable, descr),
+		b.driver.BuildColumnComments(b.fullTable, attrs),
+	)
 	return res, nil
-}
-
-func (b *SchemaBuilder) buildColumns(attrs []attribute) string {
-	columns := make([]string, len(attrs))
-	for i, attr := range attrs {
-		columns[i] = fmt.Sprintf("\t%s", b.buildColumn(attr))
-	}
-
-	return strings.Join(columns, ",\n")
 }
 
 func (b *SchemaBuilder) buildColumn(attr attribute) string {
@@ -68,7 +66,7 @@ func (b *SchemaBuilder) buildColumn(attr attribute) string {
 	sb.WriteString(escapeColumnName(columnName))
 	sb.WriteString(" ")
 
-	sb.WriteString(xsdTypeToSQL(attr.Type))
+	sb.WriteString(b.driver.ResolveColumnType(attr.Type))
 
 	if !b.ignoreNotNull {
 		notNull := resolveNullability(b.table, columnName, attr)
@@ -82,39 +80,6 @@ func (b *SchemaBuilder) buildColumn(attr attribute) string {
 	}
 
 	return sb.String()
-}
-
-func (b *SchemaBuilder) buildTableComment(descr string) string {
-	return fmt.Sprintf("COMMENT ON TABLE %s IS '%s'", b.fullTable, descr)
-}
-
-func (b *SchemaBuilder) buildColumnComments(attrs []attribute) string {
-	columns := make([]string, len(attrs))
-	for i, attr := range attrs {
-		columnName := resolveColumnName(attr.Name)
-		columns[i] = fmt.Sprintf("COMMENT ON COLUMN %s.%s IS '%s';", b.fullTable, columnName, attr.Annotation.Documentation)
-	}
-
-	return strings.Join(columns, "\n")
-}
-
-func xsdTypeToSQL(xsdType string) string {
-	switch xsdType {
-	case "xs:string":
-		return "VARCHAR"
-	case "xs:int":
-		return "INT"
-	case "xs:long":
-		return "BIGINT"
-	case "xs:boolean":
-		return "BOOLEAN"
-	case "xs:date":
-		return "DATE"
-	case "xs:dateTime":
-		return "TIMESTAMP"
-	default:
-		return "VARCHAR"
-	}
 }
 
 type schema struct {

@@ -127,7 +127,11 @@ func handleDataFile(ctx context.Context, cfg *config.Config, tableName string, f
 }
 
 func handleSchemaFile(ctx context.Context, cfg *config.Config, tableName string, filePath string) error {
-	sqlBuilder := sqlbuilder.NewSchemaBuilder(cfg.DbSchema, tableName, cfg.IgnoreNotNull)
+	sqlBuilder := sqlbuilder.NewSchemaBuilder(cfg.DbSchema, tableName, cfg.IgnoreNotNull, resolveDriver(cfg))
+
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
 
 	data, err := os.ReadFile(filePath)
 	if err != nil {
@@ -153,5 +157,16 @@ func resolveDataBuilder(cfg *config.Config, tableName string, item map[string]st
 		return sqlbuilder.NewUpsertBuilder(cfg.DbSchema, tableName, attrs)
 	default:
 		panic(fmt.Sprintf("failed to resolve builder for %q", cfg.Mode))
+	}
+}
+
+func resolveDriver(cfg *config.Config) sqlbuilder.Driver {
+	switch cfg.DbType {
+	case config.DbTypePSQL:
+		return &sqlbuilder.PSQLDriver{}
+	case config.DbTypeMySQL:
+		return &sqlbuilder.MySQLDriver{}
+	default:
+		panic(fmt.Sprintf("failed to resolve driver for %q", cfg.DbType))
 	}
 }

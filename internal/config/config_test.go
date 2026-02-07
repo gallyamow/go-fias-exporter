@@ -6,10 +6,11 @@ import (
 	"testing"
 )
 
-func TestParseFlags_CopyFromMode(t *testing.T) {
+func TestParseFlags_PSQLCopyFromMode(t *testing.T) {
 	resetFlags()
 	os.Args = []string{
 		"cmd",
+		"-db-type=psql",
 		"-mode=copy",
 		"-batch-size=100",
 		"/data/input",
@@ -33,10 +34,31 @@ func TestParseFlags_CopyFromMode(t *testing.T) {
 	}
 }
 
+func TestParseFlags_MySQLCopyFromMode(t *testing.T) {
+	resetFlags()
+	os.Args = []string{
+		"cmd",
+		"-db-type=mysql",
+		"-mode=copy",
+		"-batch-size=100",
+		"/data/input",
+	}
+
+	_, err := ParseFlags()
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+
+	if !errors.Is(err, ErrUnusableMode) {
+		t.Fatalf("got unexpected error: %s", err)
+	}
+}
+
 func TestParseFlags_UpsertModeWithDB(t *testing.T) {
 	resetFlags()
 	os.Args = []string{
 		"cmd",
+		"-db-type=psql",
 		"-mode=upsert",
 		"/data/input",
 	}
@@ -55,6 +77,7 @@ func TestParseFlags_SchemaModeWithDB(t *testing.T) {
 	resetFlags()
 	os.Args = []string{
 		"cmd",
+		"-db-type=psql",
 		"-mode=schema",
 		"/data/input",
 	}
@@ -85,6 +108,7 @@ func TestParseFlags_InvalidMode(t *testing.T) {
 	resetFlags()
 	os.Args = []string{
 		"cmd",
+		"-db-type=psql",
 		"-mode=unknown",
 		"/data/input",
 	}
