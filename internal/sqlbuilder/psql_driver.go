@@ -1,22 +1,28 @@
 package sqlbuilder
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type PSQLDriver struct {
 	BaseDriver
 }
 
 func (d *PSQLDriver) CreateTable(fullTable string) string {
-	res := fmt.Sprintf("CREATE TABLE %s (\n%s\n);\n%s;\n%s",
-		fullTable,
-		b.buildColumns(attrs),
-		b.driver.BuildTableComment(b.fullTable, descr),
-		b.driver.BuildColumnComments(b.fullTable, attrs),
-	)
-	return res
+	var sb strings.Builder
+
+	sb.WriteString(fmt.Sprintf("CREATE TABLE %s (\n%s\n);", fullTable, d.buildColumns(attrs)))
+	sb.WriteRune('\n')
+	sb.WriteString(fmt.Sprintf("%s;", fmt.Sprintf("COMMENT ON TABLE %s IS '%s'", fullTable, descr)))
+	sb.WriteRune('\n')
+	sb.WriteString(fmt.Sprintf("%s", d.BuildColumnComments(fullTable, attrs)))
+	sb.WriteRune('\n')
+
+	return sb.String()
 }
 
-func (d *PSQLDriver) ResolveColumnType(xsdType string) string {
+func (d *PSQLDriver) resolveColumnType(xsdType string) string {
 	switch xsdType {
 	case "xs:string":
 		return "VARCHAR"

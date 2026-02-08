@@ -4,7 +4,7 @@ type MySQLDriver struct {
 	BaseDriver
 }
 
-func (d *MySQLDriver) ResolveColumnType(xsdType string) string {
+func (d *MySQLDriver) resolveColumnType(xsdType string) string {
 	switch xsdType {
 	case "xs:string":
 		return "VARCHAR(255)"

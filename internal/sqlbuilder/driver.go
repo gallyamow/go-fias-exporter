@@ -7,9 +7,9 @@ import (
 
 type Driver interface {
 	CreateTable() string
-	ResolveColumnType(xsdType string) string
-	BuildTableComment(fullTable string, descr string) string
-	BuildColumnComments(fullTable string, attrs []attribute) string
+	//ResolveColumnType(xsdType string) string
+	//BuildTableComment(fullTable string, descr string) string
+	//BuildColumnComments(fullTable string, attrs []attribute) string
 }
 
 type BaseDriver struct {
@@ -22,10 +22,6 @@ func (b *SchemaBuilder) buildColumns(attrs []attribute) string {
 	}
 
 	return strings.Join(columns, ",\n")
-}
-
-func (d *BaseDriver) BuildTableComment(fullTable string, descr string) string {
-	return fmt.Sprintf("COMMENT ON TABLE %s IS '%s'", fullTable, descr)
 }
 
 func (d *BaseDriver) BuildColumnComments(fullTable string, attrs []attribute) string {
