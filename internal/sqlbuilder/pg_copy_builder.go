@@ -63,7 +63,7 @@ func (b *PostgreSQLCopyBuilder) buildValues(rows []map[string]string) (string, e
 func (b *PostgreSQLCopyBuilder) buildColumns() string {
 	columns := make([]string, len(b.attrs))
 	for i, attrName := range b.attrs {
-		columns[i] = escapeColumnName(resolveColumnName(attrName))
+		columns[i] = escapeColumnNamePostgreSQL(resolveColumnName(attrName))
 	}
 	return strings.Join(columns, ",")
 }

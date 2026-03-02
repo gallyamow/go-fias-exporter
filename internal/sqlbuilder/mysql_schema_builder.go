@@ -65,7 +65,7 @@ func (b *MySQLSchemaBuilder) buildColumn(attr attribute) string {
 	var sb strings.Builder
 	columnName := resolveColumnName(attr.Name)
 
-	sb.WriteString(escapeColumnName(columnName))
+	sb.WriteString(escapeColumnNameMySQL(columnName))
 	sb.WriteString(" ")
 
 	sb.WriteString(xsdTypeToMySQL(attr.Type))

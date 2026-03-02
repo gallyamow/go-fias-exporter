@@ -65,7 +65,7 @@ func (b *PostgreSQLSchemaBuilder) buildColumn(attr attribute) string {
 	var sb strings.Builder
 	columnName := resolveColumnName(attr.Name)
 
-	sb.WriteString(escapeColumnName(columnName))
+	sb.WriteString(escapeColumnNamePostgreSQL(columnName))
 	sb.WriteString(" ")
 
 	sb.WriteString(xsdTypeToSQL(attr.Type))

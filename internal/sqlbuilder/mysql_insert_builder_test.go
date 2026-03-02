@@ -89,9 +89,7 @@ func TestMySQLInsertBuilder_Build(t *testing.T) {
 			t.Fatalf("Build() error = %v", err)
 		}
 
-		expected := `INSERT INTO test_table (id,name,"desc") VALUES ('1','test''with''quotes','test
-with
-newlines') ON DUPLICATE KEY UPDATE name=VALUES(name),"desc"=VALUES("desc");`
+		expected := "INSERT INTO test_table (id,name,`desc`) VALUES ('1','test''with''quotes','test\nwith\nnewlines') ON DUPLICATE KEY UPDATE name=VALUES(name),`desc`=VALUES(`desc`);"
 
 		if result != expected {
 			t.Errorf("Build() result =\n%s\n\nexpected =\n%s", result, expected)
@@ -197,7 +195,7 @@ func TestMySQLInsertBuilder_buildColumns(t *testing.T) {
 		builder := NewMySQLInsertBuilder("", "test_table", []string{"id", "desc"})
 		result := builder.buildColumns()
 
-		expected := "id,\"desc\""
+		expected := "id,`desc`"
 		if result != expected {
 			t.Errorf("buildColumns() result = %s, expected %s", result, expected)
 		}

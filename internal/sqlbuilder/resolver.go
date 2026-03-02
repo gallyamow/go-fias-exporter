@@ -103,10 +103,18 @@ func buildFullTableName(dbSchema string, tableName string) string {
 	return tableName
 }
 
-func escapeColumnName(columnName string) string {
+func escapeColumnNamePostgreSQL(columnName string) string {
 	// (hardcoded)
 	if columnName == "desc" {
 		return fmt.Sprintf(`"%s"`, columnName)
+	}
+	return columnName
+}
+
+func escapeColumnNameMySQL(columnName string) string {
+	// (hardcoded)
+	if columnName == "desc" {
+		return fmt.Sprintf("`%s`", columnName)
 	}
 	return columnName
 }

@@ -67,7 +67,7 @@ func (b *PostgreSQLUpsertBuilder) buildValues(rows []map[string]string) (string,
 func (b *PostgreSQLUpsertBuilder) buildColumns() string {
 	columns := make([]string, len(b.attrs))
 	for i, attrName := range b.attrs {
-		columns[i] = escapeColumnName(resolveColumnName(attrName))
+		columns[i] = escapeColumnNamePostgreSQL(resolveColumnName(attrName))
 	}
 	return strings.Join(columns, ",")
 }
@@ -75,7 +75,7 @@ func (b *PostgreSQLUpsertBuilder) buildColumns() string {
 func (b *PostgreSQLUpsertBuilder) buildOnConflict() string {
 	var setters []string
 	for _, attrName := range b.attrs {
-		column := escapeColumnName(resolveColumnName(attrName))
+		column := escapeColumnNamePostgreSQL(resolveColumnName(attrName))
 		if column == b.primaryKey {
 			continue
 		}

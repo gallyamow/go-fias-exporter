@@ -67,7 +67,7 @@ func (b *MySQLInsertBuilder) buildValues(rows []map[string]string) (string, erro
 func (b *MySQLInsertBuilder) buildColumns() string {
 	columns := make([]string, len(b.attrs))
 	for i, attrName := range b.attrs {
-		columns[i] = escapeColumnName(resolveColumnName(attrName))
+		columns[i] = escapeColumnNameMySQL(resolveColumnName(attrName))
 	}
 	return strings.Join(columns, ",")
 }
@@ -75,7 +75,7 @@ func (b *MySQLInsertBuilder) buildColumns() string {
 func (b *MySQLInsertBuilder) buildOnDuplicateKeyUpdate() string {
 	var setters []string
 	for _, attrName := range b.attrs {
-		column := escapeColumnName(resolveColumnName(attrName))
+		column := escapeColumnNameMySQL(resolveColumnName(attrName))
 		if column == b.primaryKey {
 			continue
 		}

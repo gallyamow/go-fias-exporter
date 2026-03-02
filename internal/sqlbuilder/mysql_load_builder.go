@@ -33,7 +33,7 @@ func (b *MySQLLoadDataBuilder) Build(rows []map[string]string) (string, error) {
 		return "", err
 	}
 
-	sql := fmt.Sprintf("LOAD DATA LOCAL INFILE 'stdin' INTO TABLE %s FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n' (%s);\n%s", buildFullTableName(b.dbSchema, b.table), b.buildColumns(), valuesStatement)
+	sql := fmt.Sprintf(`LOAD DATA LOCAL INFILE 'stdin' INTO TABLE %s FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' (%s);`+"\n%s", buildFullTableName(b.dbSchema, b.table), b.buildColumns(), valuesStatement)
 
 	return sql, nil
 }
@@ -63,7 +63,7 @@ func (b *MySQLLoadDataBuilder) buildValues(rows []map[string]string) (string, er
 func (b *MySQLLoadDataBuilder) buildColumns() string {
 	columns := make([]string, len(b.attrs))
 	for i, attrName := range b.attrs {
-		columns[i] = escapeColumnName(resolveColumnName(attrName))
+		columns[i] = escapeColumnNameMySQL(resolveColumnName(attrName))
 	}
 	return strings.Join(columns, ",")
 }
