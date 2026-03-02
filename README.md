@@ -90,11 +90,11 @@ docker exec -i gar-mysql mysql -u root -e "CREATE DATABASE gar;"
 ./fias-exporter --db-type mysql --mode schema ./example/gar_schemas | docker exec -i gar-mysql mysql -u root gar
 
 # По какой-то причине этой таблицы нет в gar_schemas
-echo 'CREATE TABLE gar.addhouse_types (
-	id VARCHAR(255) NOT NULL PRIMARY KEY,
-	name VARCHAR(255) NOT NULL,
-	shortname VARCHAR(255),
-	`desc` VARCHAR(255),
+echo 'CREATE TABLE addhouse_types (
+	id VARCHAR(500) NOT NULL PRIMARY KEY,
+	name TEXT NOT NULL,
+	shortname TEXT,
+	`desc` TEXT,
 	updatedate DATE NOT NULL,
 	startdate DATE NOT NULL,
 	enddate DATE NOT NULL,
@@ -103,6 +103,8 @@ echo 'CREATE TABLE gar.addhouse_types (
 
 # 3) Быстрый импорт данных в созданные таблицы
 ./fias-exporter --db-type mysql --mode copy ./example/gar_data | docker exec -i gar-mysql mysql -u root gar --local-infile=1
+
+echo 'SET GLOBAL local_infile = 1;' | docker exec -i gar-mysql mysql -u root
 
 # Альтернативно: UPSERT
 ./fias-exporter --db-type mysql --mode upsert ./example/gar_data | docker exec -i gar-mysql mysql -u root gar

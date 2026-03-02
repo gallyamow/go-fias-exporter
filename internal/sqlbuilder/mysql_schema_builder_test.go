@@ -154,19 +154,19 @@ func TestMySQLSchemaBuilder_Build(t *testing.T) {
 		}
 
 		expected := `CREATE TABLE addressobjects (
-	id TEXT NOT NULL PRIMARY KEY,
-	objectid TEXT NOT NULL,
-	objectguid TEXT NOT NULL,
-	name TEXT NOT NULL,
-	typename TEXT NOT NULL,
-	level TEXT NOT NULL,
-	operationtypeid TEXT NOT NULL,
-	previd TEXT,
-	nextid TEXT,
-	updatedate TEXT NOT NULL,
-	startdate TEXT NOT NULL,
-	enddate TEXT NOT NULL,
-	isactive TEXT NOT NULL
+	id VARCHAR(500) NOT NULL PRIMARY KEY,
+	objectid VARCHAR(500) NOT NULL,
+	objectguid VARCHAR(500) NOT NULL,
+	name VARCHAR(500) NOT NULL,
+	typename VARCHAR(500) NOT NULL,
+	level VARCHAR(500) NOT NULL,
+	operationtypeid VARCHAR(500) NOT NULL,
+	previd VARCHAR(500),
+	nextid VARCHAR(500),
+	updatedate VARCHAR(500) NOT NULL,
+	startdate VARCHAR(500) NOT NULL,
+	enddate VARCHAR(500) NOT NULL,
+	isactive VARCHAR(500) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE addressobjects COMMENT = 'Состав и структура файла со сведениями классификатора адресообразующих элементов БД ФИАС';`
 
@@ -205,7 +205,7 @@ ALTER TABLE addressobjects COMMENT = 'Состав и структура фай�
 		}
 
 		expected := `CREATE TABLE test_schema.test (
-	id TEXT NOT NULL PRIMARY KEY
+	id VARCHAR(500) NOT NULL PRIMARY KEY
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE test_schema.test COMMENT = 'Test table';`
 
@@ -249,8 +249,8 @@ ALTER TABLE test_schema.test COMMENT = 'Test table';`
 		}
 
 		expected := `CREATE TABLE test (
-	id TEXT PRIMARY KEY,
-	name TEXT
+	id VARCHAR(500) PRIMARY KEY,
+	name VARCHAR(500)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE test COMMENT = 'Test table';`
 
@@ -265,13 +265,13 @@ func TestXsdTypeToMySQL(t *testing.T) {
 		xsdType  string
 		expected string
 	}{
-		{"xs:string", "TEXT"},
+		{"xs:string", "VARCHAR(500)"},
 		{"xs:int", "INT"},
 		{"xs:long", "BIGINT"},
 		{"xs:boolean", "BOOLEAN"},
 		{"xs:date", "DATE"},
 		{"xs:dateTime", "DATETIME"},
-		{"unknown", "TEXT"},
+		{"unknown", "VARCHAR(500)"},
 	}
 
 	for _, tt := range tests {
