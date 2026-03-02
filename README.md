@@ -72,6 +72,9 @@ echo 'CREATE TABLE tmp.addhouse_types (
 
 # Альтернативно: UPSERT
 ./fias-exporter --db-type postgres --mode upsert --db-schema tmp ./example/gar_data | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
+
+# Проверка
+echo 'SELECT COUNT(*) FROM tmp.addhouse_types;' | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 ```
 
 ### MySQL
@@ -102,12 +105,15 @@ echo 'CREATE TABLE addhouse_types (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;' | docker exec -i gar-mysql mysql -u root gar
 
 # 3) Быстрый импорт данных в созданные таблицы
-./fias-exporter --db-type mysql --mode copy ./example/gar_data | docker exec -i gar-mysql mysql -u root gar --local-infile=1
-
-echo 'SET GLOBAL local_infile = 1;' | docker exec -i gar-mysql mysql -u root
+# TODO: пока не работает
+# echo 'SET GLOBAL local_infile = 1;' | docker exec -i gar-mysql mysql -u root
+# ./fias-exporter --db-type mysql --mode copy ./example/gar_data | docker exec -i gar-mysql mysql -u root gar --local-infile=1
 
 # Альтернативно: UPSERT
 ./fias-exporter --db-type mysql --mode upsert ./example/gar_data | docker exec -i gar-mysql mysql -u root gar
+
+# Проверка
+echo 'SELECT COUNT(*) FROM addhouse_types;' | docker exec -i gar-mysql mysql -u root gar
 ```
 
 ## Примечания

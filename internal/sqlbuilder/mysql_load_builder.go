@@ -47,7 +47,12 @@ func (b *MySQLLoadDataBuilder) buildValues(rows []map[string]string) (string, er
 
 		// to keep order of columns
 		for i, attrName := range b.attrs {
-			vals[i] = row[attrName]
+			value := row[attrName]
+			// Convert boolean string values to integers for MySQL BOOLEAN columns
+			if resolveColumnName(attrName) == "isactive" {
+				value = convertBooleanToMySQL(value)
+			}
+			vals[i] = value
 		}
 
 		if err := writer.Write(vals); err != nil {
