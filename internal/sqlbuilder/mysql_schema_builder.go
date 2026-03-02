@@ -91,7 +91,7 @@ func (b *MySQLSchemaBuilder) buildTableComment(descr string) string {
 func xsdTypeToMySQL(xsdType string) string {
 	switch xsdType {
 	case "xs:string":
-		return "VARCHAR(255)"
+		return "TEXT"
 	case "xs:int":
 		return "INT"
 	case "xs:long":
@@ -103,6 +103,6 @@ func xsdTypeToMySQL(xsdType string) string {
 	case "xs:dateTime":
 		return "DATETIME"
 	default:
-		return "VARCHAR(255)"
+		return "TEXT"
 	}
 }

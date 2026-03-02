@@ -154,19 +154,19 @@ func TestMySQLSchemaBuilder_Build(t *testing.T) {
 		}
 
 		expected := `CREATE TABLE addressobjects (
-	id VARCHAR(255) NOT NULL PRIMARY KEY,
-	objectid VARCHAR(255) NOT NULL,
-	objectguid VARCHAR(255) NOT NULL,
-	name VARCHAR(255) NOT NULL,
-	typename VARCHAR(255) NOT NULL,
-	level VARCHAR(255) NOT NULL,
-	operationtypeid VARCHAR(255) NOT NULL,
-	previd VARCHAR(255),
-	nextid VARCHAR(255),
-	updatedate VARCHAR(255) NOT NULL,
-	startdate VARCHAR(255) NOT NULL,
-	enddate VARCHAR(255) NOT NULL,
-	isactive VARCHAR(255) NOT NULL
+	id TEXT NOT NULL PRIMARY KEY,
+	objectid TEXT NOT NULL,
+	objectguid TEXT NOT NULL,
+	name TEXT NOT NULL,
+	typename TEXT NOT NULL,
+	level TEXT NOT NULL,
+	operationtypeid TEXT NOT NULL,
+	previd TEXT,
+	nextid TEXT,
+	updatedate TEXT NOT NULL,
+	startdate TEXT NOT NULL,
+	enddate TEXT NOT NULL,
+	isactive TEXT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE addressobjects COMMENT = 'Состав и структура файла со сведениями классификатора адресообразующих элементов БД ФИАС';`
 
@@ -205,7 +205,7 @@ ALTER TABLE addressobjects COMMENT = 'Состав и структура фай�
 		}
 
 		expected := `CREATE TABLE test_schema.test (
-	id VARCHAR(255) NOT NULL PRIMARY KEY
+	id TEXT NOT NULL PRIMARY KEY
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE test_schema.test COMMENT = 'Test table';`
 
@@ -249,8 +249,8 @@ ALTER TABLE test_schema.test COMMENT = 'Test table';`
 		}
 
 		expected := `CREATE TABLE test (
-	id VARCHAR(255) PRIMARY KEY,
-	name VARCHAR(255)
+	id TEXT PRIMARY KEY,
+	name TEXT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE test COMMENT = 'Test table';`
 
@@ -265,13 +265,13 @@ func TestXsdTypeToMySQL(t *testing.T) {
 		xsdType  string
 		expected string
 	}{
-		{"xs:string", "VARCHAR(255)"},
+		{"xs:string", "TEXT"},
 		{"xs:int", "INT"},
 		{"xs:long", "BIGINT"},
 		{"xs:boolean", "BOOLEAN"},
 		{"xs:date", "DATE"},
 		{"xs:dateTime", "DATETIME"},
-		{"unknown", "VARCHAR(255)"},
+		{"unknown", "TEXT"},
 	}
 
 	for _, tt := range tests {

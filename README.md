@@ -53,7 +53,7 @@ docker run --name gar \
 echo 'CREATE SCHEMA tmp;' | docker exec -i gar psql -U postgres
 
 # 2) Импорт таблиц в созданную схему
-./fias-exporter --mode schema --db-schema tmp ./example/gar_schemas | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
+./fias-exporter --db-type postgres --mode schema --db-schema tmp ./example/gar_schemas | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 
 # По какой-то причине этой таблицы нет в gar_schemas
 echo 'CREATE TABLE tmp.addhouse_types (
@@ -67,8 +67,11 @@ echo 'CREATE TABLE tmp.addhouse_types (
 	isactive BOOLEAN NOT NULL
 );' | docker exec -i gar psql -U postgres
 
-# 3) Потоковый импорт данных в созданные таблицы
-./fias-exporter --mode copy --db-schema tmp ./example/gar_data | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
+# 3) Быстрый импорт данных в созданные таблицы
+./fias-exporter --db-type postgres --mode copy --db-schema tmp ./example/gar_data | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
+
+# Альтернативно: UPSERT
+./fias-exporter --db-type postgres --mode upsert --db-schema tmp ./example/gar_data | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 ```
 
 ### MySQL
@@ -98,10 +101,10 @@ echo 'CREATE TABLE gar.addhouse_types (
 	isactive BOOLEAN NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;' | docker exec -i gar-mysql mysql -u root gar
 
-# 3) Потоковый импорт данных в созданные таблицы
+# 3) Быстрый импорт данных в созданные таблицы
 ./fias-exporter --db-type mysql --mode copy ./example/gar_data | docker exec -i gar-mysql mysql -u root gar --local-infile=1
 
-# Альтернативно: использование INSERT с ON DUPLICATE KEY UPDATE
+# Альтернативно: UPSERT
 ./fias-exporter --db-type mysql --mode upsert ./example/gar_data | docker exec -i gar-mysql mysql -u root gar
 ```
 
