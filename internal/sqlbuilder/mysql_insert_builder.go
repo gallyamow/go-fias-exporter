@@ -53,8 +53,14 @@ func (b *MySQLInsertBuilder) buildValues(rows []map[string]string) (string, erro
 
 		// to keep order of columns
 		for i, attrName := range b.attrs {
+			// Convert boolean string values to integers for MySQL BOOLEAN columns
+			value := row[attrName]
+			
+			if resolveColumnName(attrName) == "isactive" {
+				value = convertBooleanToMySQL(value)
+			}
 			// (to keep simple quote for all values)
-			escapedValue := escapeString(row[attrName])
+			escapedValue := escapeString(value)
 			vals[i] = fmt.Sprintf("'%s'", escapedValue)
 		}
 

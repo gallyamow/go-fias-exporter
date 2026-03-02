@@ -1,6 +1,6 @@
 # go-fias-exporter
 
-Преобразует XML-выгрузки ФИАС (ГАР) в SQL, пригодный для импорта в PostgreSQL и MySQL.
+Преобразует XML-выгрузки ФИАС (ГАР) в SQL, пригодный для импорта в **PostgreSQL** и **MySQL**.
 
 <a href="https://pkg.go.dev/github.com/gallyamow/go-fias-exporter"><img src="https://pkg.go.dev/badge/github.com/gallyamow/go-fias-exporter.svg" alt="Go Reference"></a>
 
@@ -52,7 +52,7 @@ docker run --name gar \
 # 1) Создание схемы (если не хотите в public)
 echo 'CREATE SCHEMA tmp;' | docker exec -i gar psql -U postgres
 
-# 2) Импорт таблиц в созданную схему
+# 2) Создание таблиц по схемам
 ./fias-exporter --db-type postgres --mode schema --db-schema tmp ./example/gar_schemas | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 
 # По какой-то причине этой таблицы нет в gar_schemas
@@ -86,7 +86,7 @@ docker run --name gar-mysql \
 # 1) Создание базы данных (если не хотите в default)
 docker exec -i gar-mysql mysql -u root -e "CREATE DATABASE gar;"
 
-# 2) Импорт таблиц в созданную базу данных
+# 2) Создание таблиц по схемам
 ./fias-exporter --db-type mysql --mode schema ./example/gar_schemas | docker exec -i gar-mysql mysql -u root gar
 
 # По какой-то причине этой таблицы нет в gar_schemas

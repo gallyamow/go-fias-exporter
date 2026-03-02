@@ -122,3 +122,14 @@ func escapeColumnNameMySQL(columnName string) string {
 func escapeString(s string) string {
 	return strings.ReplaceAll(s, "'", "''")
 }
+
+func convertBooleanToMySQL(value string) string {
+	switch strings.ToLower(value) {
+	case "true":
+		return "1"
+	case "false":
+		return "0"
+	default:
+		return value
+	}
+}
