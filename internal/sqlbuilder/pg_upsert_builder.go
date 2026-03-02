@@ -5,15 +5,15 @@ import (
 	"strings"
 )
 
-type UpsertBuilder struct {
+type PostgreSQLUpsertBuilder struct {
 	dbSchema   string
 	table      string
 	primaryKey string
 	attrs      []string
 }
 
-func NewUpsertBuilder(dbSchema string, tableName string, attrs []string) *UpsertBuilder {
-	return &UpsertBuilder{
+func NewPostgreSQLUpsertBuilder(dbSchema string, tableName string, attrs []string) *PostgreSQLUpsertBuilder {
+	return &PostgreSQLUpsertBuilder{
 		dbSchema:   dbSchema,
 		table:      tableName,
 		primaryKey: resolvePrimaryKey(tableName),
@@ -21,7 +21,7 @@ func NewUpsertBuilder(dbSchema string, tableName string, attrs []string) *Upsert
 	}
 }
 
-func (b *UpsertBuilder) Build(rows []map[string]string) (string, error) {
+func (b *PostgreSQLUpsertBuilder) Build(rows []map[string]string) (string, error) {
 	if len(rows) == 0 {
 		return "", fmt.Errorf("no rows to build")
 	}
@@ -45,7 +45,7 @@ func (b *UpsertBuilder) Build(rows []map[string]string) (string, error) {
 	return sb.String(), nil
 }
 
-func (b *UpsertBuilder) buildValues(rows []map[string]string) (string, error) {
+func (b *PostgreSQLUpsertBuilder) buildValues(rows []map[string]string) (string, error) {
 	var res []string
 
 	for _, row := range rows {
@@ -64,7 +64,7 @@ func (b *UpsertBuilder) buildValues(rows []map[string]string) (string, error) {
 	return strings.Join(res, ","), nil
 }
 
-func (b *UpsertBuilder) buildColumns() string {
+func (b *PostgreSQLUpsertBuilder) buildColumns() string {
 	columns := make([]string, len(b.attrs))
 	for i, attrName := range b.attrs {
 		columns[i] = escapeColumnName(resolveColumnName(attrName))
@@ -72,7 +72,7 @@ func (b *UpsertBuilder) buildColumns() string {
 	return strings.Join(columns, ",")
 }
 
-func (b *UpsertBuilder) buildOnConflict() string {
+func (b *PostgreSQLUpsertBuilder) buildOnConflict() string {
 	var setters []string
 	for _, attrName := range b.attrs {
 		column := escapeColumnName(resolveColumnName(attrName))

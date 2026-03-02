@@ -2,9 +2,9 @@ package sqlbuilder
 
 import "testing"
 
-func TestCopyBuilder_Build(t *testing.T) {
+func TestPostgreSQLCopyBuilder_Build(t *testing.T) {
 	t.Run("with dbSchema", func(t *testing.T) {
-		builder := NewCopyBuilder(
+		builder := NewPostgreSQLCopyBuilder(
 			"tmp",
 			"test_table",
 			[]string{"ID", "NAME"},
@@ -36,7 +36,7 @@ func TestCopyBuilder_Build(t *testing.T) {
 	})
 
 	t.Run("no dbSchema", func(t *testing.T) {
-		builder := NewCopyBuilder(
+		builder := NewPostgreSQLCopyBuilder(
 			"",
 			"test_table",
 			[]string{"ID", "NAME"},
@@ -68,8 +68,8 @@ func TestCopyBuilder_Build(t *testing.T) {
 	})
 }
 
-func TestCopyBuilder_PreservesColumnOrder(t *testing.T) {
-	builder := NewCopyBuilder(
+func TestPostgreSQLCopyBuilder_PreservesColumnOrder(t *testing.T) {
+	builder := NewPostgreSQLCopyBuilder(
 		"tmp",
 		"test_table",
 		[]string{"NAME", "ID"},

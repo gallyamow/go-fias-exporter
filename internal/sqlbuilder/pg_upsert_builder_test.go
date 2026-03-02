@@ -2,9 +2,9 @@ package sqlbuilder
 
 import "testing"
 
-func TestUpsertBuilder_Build(t *testing.T) {
+func TestPostgreSQLUpsertBuilder_Build(t *testing.T) {
 	t.Run("with primary key", func(t *testing.T) {
-		builder := NewUpsertBuilder(
+		builder := NewPostgreSQLUpsertBuilder(
 			"tmp",
 			"test_table",
 			[]string{"ID", "NAME"},
@@ -33,7 +33,7 @@ func TestUpsertBuilder_Build(t *testing.T) {
 	})
 
 	t.Run("escape values", func(t *testing.T) {
-		builder := NewUpsertBuilder(
+		builder := NewPostgreSQLUpsertBuilder(
 			"tmp",
 			"test_table",
 			[]string{"ID", "NAME"},
@@ -62,7 +62,7 @@ func TestUpsertBuilder_Build(t *testing.T) {
 	})
 
 	t.Run("no dbSchema", func(t *testing.T) {
-		builder := NewUpsertBuilder(
+		builder := NewPostgreSQLUpsertBuilder(
 			"",
 			"test_table",
 			[]string{"ID", "NAME"},
@@ -91,8 +91,8 @@ func TestUpsertBuilder_Build(t *testing.T) {
 	})
 }
 
-func TestUpsertBuilder_PreservesColumnOrder(t *testing.T) {
-	builder := NewUpsertBuilder(
+func TestPostgreSQLUpsertBuilder_PreservesColumnOrder(t *testing.T) {
+	builder := NewPostgreSQLUpsertBuilder(
 		"tmp",
 		"test_table",
 		[]string{"NAME", "ID"},

@@ -6,15 +6,15 @@ import (
 	"strings"
 )
 
-type SchemaBuilder struct {
+type PostgreSQLSchemaBuilder struct {
 	table         string
 	fullTable     string
 	primaryKey    string
 	ignoreNotNull bool
 }
 
-func NewSchemaBuilder(dbSchema string, tableName string, ignoreNotNull bool) *SchemaBuilder {
-	return &SchemaBuilder{
+func NewPostgreSQLSchemaBuilder(dbSchema string, tableName string, ignoreNotNull bool) *PostgreSQLSchemaBuilder {
+	return &PostgreSQLSchemaBuilder{
 		table:         tableName,
 		fullTable:     buildFullTableName(dbSchema, tableName),
 		primaryKey:    resolvePrimaryKey(tableName),
@@ -22,7 +22,7 @@ func NewSchemaBuilder(dbSchema string, tableName string, ignoreNotNull bool) *Sc
 	}
 }
 
-func (b *SchemaBuilder) Build(data []byte) (string, error) {
+func (b *PostgreSQLSchemaBuilder) Build(data []byte) (string, error) {
 	var schema schema
 	if err := xml.Unmarshal(data, &schema); err != nil {
 		return "", err
@@ -52,7 +52,7 @@ func (b *SchemaBuilder) Build(data []byte) (string, error) {
 	return res, nil
 }
 
-func (b *SchemaBuilder) buildColumns(attrs []attribute) string {
+func (b *PostgreSQLSchemaBuilder) buildColumns(attrs []attribute) string {
 	columns := make([]string, len(attrs))
 	for i, attr := range attrs {
 		columns[i] = fmt.Sprintf("\t%s", b.buildColumn(attr))
@@ -61,7 +61,7 @@ func (b *SchemaBuilder) buildColumns(attrs []attribute) string {
 	return strings.Join(columns, ",\n")
 }
 
-func (b *SchemaBuilder) buildColumn(attr attribute) string {
+func (b *PostgreSQLSchemaBuilder) buildColumn(attr attribute) string {
 	var sb strings.Builder
 	columnName := resolveColumnName(attr.Name)
 
@@ -84,11 +84,11 @@ func (b *SchemaBuilder) buildColumn(attr attribute) string {
 	return sb.String()
 }
 
-func (b *SchemaBuilder) buildTableComment(descr string) string {
+func (b *PostgreSQLSchemaBuilder) buildTableComment(descr string) string {
 	return fmt.Sprintf("COMMENT ON TABLE %s IS '%s'", b.fullTable, descr)
 }
 
-func (b *SchemaBuilder) buildColumnComments(attrs []attribute) string {
+func (b *PostgreSQLSchemaBuilder) buildColumnComments(attrs []attribute) string {
 	columns := make([]string, len(attrs))
 	for i, attr := range attrs {
 		columnName := resolveColumnName(attr.Name)

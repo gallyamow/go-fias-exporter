@@ -7,15 +7,15 @@ import (
 	"strings"
 )
 
-type CopyBuilder struct {
+type PostgreSQLCopyBuilder struct {
 	dbSchema   string
 	table      string
 	primaryKey string
 	attrs      []string
 }
 
-func NewCopyBuilder(dbSchema string, tableName string, attrs []string) *CopyBuilder {
-	return &CopyBuilder{
+func NewPostgreSQLCopyBuilder(dbSchema string, tableName string, attrs []string) *PostgreSQLCopyBuilder {
+	return &PostgreSQLCopyBuilder{
 		dbSchema:   dbSchema,
 		table:      tableName,
 		primaryKey: resolvePrimaryKey(tableName),
@@ -23,7 +23,7 @@ func NewCopyBuilder(dbSchema string, tableName string, attrs []string) *CopyBuil
 	}
 }
 
-func (b *CopyBuilder) Build(rows []map[string]string) (string, error) {
+func (b *PostgreSQLCopyBuilder) Build(rows []map[string]string) (string, error) {
 	if len(rows) == 0 {
 		return "", fmt.Errorf("no rows to build")
 	}
@@ -38,7 +38,7 @@ func (b *CopyBuilder) Build(rows []map[string]string) (string, error) {
 	return sql, nil
 }
 
-func (b *CopyBuilder) buildValues(rows []map[string]string) (string, error) {
+func (b *PostgreSQLCopyBuilder) buildValues(rows []map[string]string) (string, error) {
 	var buf bytes.Buffer
 	writer := csv.NewWriter(&buf)
 
@@ -60,7 +60,7 @@ func (b *CopyBuilder) buildValues(rows []map[string]string) (string, error) {
 	return buf.String(), nil
 }
 
-func (b *CopyBuilder) buildColumns() string {
+func (b *PostgreSQLCopyBuilder) buildColumns() string {
 	columns := make([]string, len(b.attrs))
 	for i, attrName := range b.attrs {
 		columns[i] = escapeColumnName(resolveColumnName(attrName))

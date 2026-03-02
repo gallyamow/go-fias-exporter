@@ -127,7 +127,16 @@ func handleDataFile(ctx context.Context, cfg *config.Config, tableName string, f
 }
 
 func handleSchemaFile(ctx context.Context, cfg *config.Config, tableName string, filePath string) error {
-	sqlBuilder := sqlbuilder.NewSchemaBuilder(cfg.DbSchema, tableName, cfg.IgnoreNotNull)
+	var sqlBuilder sqlbuilder.SchemaBuilderInterface
+
+	switch cfg.DbType {
+	case config.DBPostgres:
+		sqlBuilder = sqlbuilder.NewPostgreSQLSchemaBuilder(cfg.DbSchema, tableName, cfg.IgnoreNotNull)
+	case config.DBMySQL:
+		sqlBuilder = sqlbuilder.NewMySQLSchemaBuilder(cfg.DbSchema, tableName, cfg.IgnoreNotNull)
+	default:
+		return fmt.Errorf("unsupported database type: %s", cfg.DbType)
+	}
 
 	data, err := os.ReadFile(filePath)
 	if err != nil {
@@ -148,9 +157,23 @@ func resolveDataBuilder(cfg *config.Config, tableName string, item map[string]st
 
 	switch cfg.Mode {
 	case config.ModeCopy:
-		return sqlbuilder.NewCopyBuilder(cfg.DbSchema, tableName, attrs)
+		switch cfg.DbType {
+		case config.DBPostgres:
+			return sqlbuilder.NewPostgreSQLCopyBuilder(cfg.DbSchema, tableName, attrs)
+		case config.DBMySQL:
+			return sqlbuilder.NewMySQLLoadDataBuilder(cfg.DbSchema, tableName, attrs)
+		default:
+			panic(fmt.Sprintf("unsupported database type: %s", cfg.DbType))
+		}
 	case config.ModeUpsert:
-		return sqlbuilder.NewUpsertBuilder(cfg.DbSchema, tableName, attrs)
+		switch cfg.DbType {
+		case config.DBPostgres:
+			return sqlbuilder.NewPostgreSQLUpsertBuilder(cfg.DbSchema, tableName, attrs)
+		case config.DBMySQL:
+			return sqlbuilder.NewMySQLInsertBuilder(cfg.DbSchema, tableName, attrs)
+		default:
+			panic(fmt.Sprintf("unsupported database type: %s", cfg.DbType))
+		}
 	default:
 		panic(fmt.Sprintf("failed to resolve builder for %q", cfg.Mode))
 	}

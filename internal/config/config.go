@@ -15,20 +15,25 @@ const (
 	ModeCopy   = "copy"
 	ModeUpsert = "upsert"
 	ModeSchema = "schema"
+
+	DBPostgres = "postgres"
+	DBMySQL    = "mysql"
 )
 
 type Config struct {
 	Path          string
 	Mode          string
+	DbType        string
 	DbSchema      string
 	BatchSize     int
 	IgnoreNotNull bool
 }
 
 func (c *Config) String() string {
-	return fmt.Sprintf("Path: %s, Mode: %s, DbSchema: %s, BatchSize: %d, IgnoreNotNull: %v",
+	return fmt.Sprintf("Path: %s, Mode: %s, DbType: %s, DbSchema: %s, BatchSize: %d, IgnoreNotNull: %v",
 		c.Path,
 		c.Mode,
+		c.DbType,
 		c.DbSchema,
 		c.BatchSize,
 		c.IgnoreNotNull,
@@ -37,6 +42,7 @@ func (c *Config) String() string {
 
 func ParseFlags() (*Config, error) {
 	mode := flag.String("mode", ModeCopy, "mode create|copy|upsert")
+	dbType := flag.String("db-type", DBPostgres, "database type: postgres|mysql")
 	dbSchema := flag.String("db-schema", "", "database dbSchema")
 	batchSize := flag.Int("batch-size", 1000000, "batch size")
 	ignoreNotNull := flag.Bool("ignore-not-null", false, "ignore NOT NULL when table created")
@@ -56,6 +62,10 @@ func ParseFlags() (*Config, error) {
 		return nil, fmt.Errorf("invalid mode '%s'", *mode)
 	}
 
+	if *dbType != DBPostgres && *dbType != DBMySQL {
+		return nil, fmt.Errorf("invalid db-type '%s'", *dbType)
+	}
+
 	if *batchSize <= 0 {
 		return nil, fmt.Errorf("batch-size must be > 0")
 	}
@@ -63,6 +73,7 @@ func ParseFlags() (*Config, error) {
 	return &Config{
 		Path:          path,
 		Mode:          *mode,
+		DbType:        *dbType,
 		DbSchema:      *dbSchema,
 		BatchSize:     *batchSize,
 		IgnoreNotNull: *ignoreNotNull,

@@ -1,6 +1,6 @@
 # go-fias-exporter
 
-Преобразует XML-выгрузки ФИАС (ГАР) в SQL, пригодный для импорта в PostgreSQL.
+Преобразует XML-выгрузки ФИАС (ГАР) в SQL, пригодный для импорта в PostgreSQL и MySQL.
 
 <a href="https://pkg.go.dev/github.com/gallyamow/go-fias-exporter"><img src="https://pkg.go.dev/badge/github.com/gallyamow/go-fias-exporter.svg" alt="Go Reference"></a>
 
@@ -8,12 +8,15 @@
 
 - Поддержка трех режимов экспорта:
     - **schema** — генерация запросов на `CREATE TABLE`
-    - **copy** — генерация запросов на пакетный импорт с использованием `COPY FROM STDIN`
-    - **upsert** — генерация запросов добавление и обновление существующих данных через `INSERT … ON CONFLICT`
+    - **copy** — генерация запросов на пакетный импорт с использованием `COPY FROM STDIN` (PostgreSQL) или `LOAD DATA LOCAL INFILE` (MySQL)
+    - **upsert** — генерация запросов добавление и обновление существующих данных через `INSERT … ON CONFLICT` (PostgreSQL) или `INSERT … ON DUPLICATE KEY UPDATE` (MySQL)
+- Поддержка баз данных:
+    - **PostgreSQL** (по умолчанию)
+    - **MySQL**
 - Настраиваемый размер батча для оптимальной производительности
 - Результат можно:
     - сохранить в файлы
-    - передать `psql` для потокового импорта
+    - передать в клиент базы данных (psql или mysql) для потокового импорта
 
 ## Установка
 
@@ -29,12 +32,15 @@ fias-exporter [flags] <путь-к-выгрузке-ФИАС>
 
 | Флаг                | По умолчанию | Описание                                                                                                            |
 |---------------------|--------------|---------------------------------------------------------------------------------------------------------------------|
-| `--mode`            | `copy`       | Режим экспорта: `schema` — генерация `CREATE TABLE`, `copy` — `COPY FROM STDIN`, `upsert` — `INSERT … ON CONFLICT`. |
+| `--mode`            | `copy`       | Режим экспорта: `schema` — генерация `CREATE TABLE`, `copy` — `COPY FROM STDIN`/`LOAD DATA LOCAL INFILE`, `upsert` — `INSERT … ON CONFLICT`/`INSERT … ON DUPLICATE KEY UPDATE`. |
+| `--db-type`         | `postgres`   | Тип базы данных: `postgres` или `mysql`.                                                                             |
 | `--db-schema`       | `public`     | Целевая схема базы данных.                                                                                          |
 | `--batch-size`      | `1000000`    | Количество записей в одном batch.                                                                                   |
 | `--ignore-not-null` | false        | Игнорировать ли обработку `NOT NULL` по `use="required"` при определении колонок.                                   |
 
 ## Пример
+
+### PostgreSQL
 
 ```shell
 docker pull postgres:latest
@@ -65,7 +71,44 @@ echo 'CREATE TABLE tmp.addhouse_types (
 ./fias-exporter --mode copy --db-schema tmp ./example/gar_data | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 ```
 
+### MySQL
+
+```shell
+docker pull mysql:latest
+docker run --name gar-mysql \
+  -p 3306:3306 \
+  -e MYSQL_ALLOW_EMPTY_PASSWORD=yes \
+  -d mysql:latest
+
+# 1) Создание базы данных (если не хотите в default)
+docker exec -i gar-mysql mysql -u root -e "CREATE DATABASE gar;"
+
+# 2) Импорт таблиц в созданную базу данных
+./fias-exporter --db-type mysql --mode schema ./example/gar_schemas | docker exec -i gar-mysql mysql -u root gar
+
+# По какой-то причине этой таблицы нет в gar_schemas
+echo 'CREATE TABLE gar.addhouse_types (
+	id VARCHAR(255) NOT NULL PRIMARY KEY,
+	name VARCHAR(255) NOT NULL,
+	shortname VARCHAR(255),
+	`desc` VARCHAR(255),
+	updatedate DATE NOT NULL,
+	startdate DATE NOT NULL,
+	enddate DATE NOT NULL,
+	isactive BOOLEAN NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;' | docker exec -i gar-mysql mysql -u root gar
+
+# 3) Потоковый импорт данных в созданные таблицы
+./fias-exporter --db-type mysql --mode copy ./example/gar_data | docker exec -i gar-mysql mysql -u root gar --local-infile=1
+
+# Альтернативно: использование INSERT с ON DUPLICATE KEY UPDATE
+./fias-exporter --db-type mysql --mode upsert ./example/gar_data | docker exec -i gar-mysql mysql -u root gar
+```
+
 ## Примечания
 
-* импортировался дамп одного региона, результат положительный
-* `--ignore-not-null` нужен так как в `data-части` есть записи с пустыми колонками в полях с `use="required"`. 
+* импортировался дамп одного региона, результат положительный для PostgreSQL и MySQL
+* `--ignore-not-null` нужен так как в `data-части` есть записи с пустыми колонками в полях с `use="required"`.
+* Для MySQL в режиме `copy` требуется включить `local_infile=1` для использования `LOAD DATA LOCAL INFILE`
+* MySQL использует `VARCHAR(255)` вместо `VARCHAR` без указания длины для совместимости
+* Для MySQL в режиме `upsert` используется синтаксис `ON DUPLICATE KEY UPDATE` вместо `ON CONFLICT` 
