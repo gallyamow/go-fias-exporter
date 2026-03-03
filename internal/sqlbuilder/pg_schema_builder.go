@@ -61,6 +61,7 @@ func (b *PostgreSQLSchemaBuilder) buildColumns(attrs []attribute) string {
 	return strings.Join(columns, ",\n")
 }
 
+//nolint:dupl
 func (b *PostgreSQLSchemaBuilder) buildColumn(attr attribute) string {
 	var sb strings.Builder
 	columnName := resolveColumnName(attr.Name)

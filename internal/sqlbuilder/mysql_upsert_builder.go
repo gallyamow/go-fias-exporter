@@ -21,6 +21,7 @@ func NewMySQLUpsertBuilder(dbSchema string, tableName string, attrs []string) *M
 	}
 }
 
+//nolint:dupl
 func (b *MySQLUpsertBuilder) Build(rows []map[string]string) (string, error) {
 	if len(rows) == 0 {
 		return "", fmt.Errorf("no rows to build")

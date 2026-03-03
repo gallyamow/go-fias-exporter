@@ -21,6 +21,7 @@ import (
 
 var version = "unknown"
 
+//nolint:gocyclo
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -82,6 +83,7 @@ func main() {
 	}
 }
 
+//nolint:gocyclo
 func handleDataFile(ctx context.Context, cfg *config.Config, tableName string, filePath string) (int, error) {
 	file, err := os.Open(filePath)
 	if err != nil {

@@ -61,6 +61,7 @@ func (b *MySQLSchemaBuilder) buildColumns(attrs []attribute) string {
 	return strings.Join(columns, ",\n")
 }
 
+//nolint:dupl
 func (b *MySQLSchemaBuilder) buildColumn(attr attribute) string {
 	var sb strings.Builder
 	columnName := resolveColumnName(attr.Name)

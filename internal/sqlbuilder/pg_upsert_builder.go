@@ -21,6 +21,7 @@ func NewPostgreSQLUpsertBuilder(dbSchema string, tableName string, attrs []strin
 	}
 }
 
+//nolint:dupl
 func (b *PostgreSQLUpsertBuilder) Build(rows []map[string]string) (string, error) {
 	if len(rows) == 0 {
 		return "", fmt.Errorf("no rows to build")
