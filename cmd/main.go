@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/dustin/go-humanize"
+
 	"github.com/gallyamow/go-fias-exporter/internal/itemiterator"
 
 	"github.com/gallyamow/go-fias-exporter/internal/config"
@@ -60,26 +62,27 @@ func main() {
 			return
 		}
 
-		fmt.Printf("-- Started: file %q (%d bytes), table %q\n", fileName, fileInfo.Size, tableName)
+		startedAt := time.Now()
+		_, _ = fmt.Fprintf(os.Stderr, "Started file %q (%s) to table %q at %q.\n", fileInfo.Path, humanize.Bytes(uint64(fileInfo.Size)), tableName, startedAt.Format(time.RFC3339))
 
 		switch cfg.Mode {
 		case config.ModeCopy, config.ModeUpsert:
 			totalRows, err := handleDataFile(ctx, cfg, tableName, fileInfo.Path)
 			if err != nil && err != io.EOF {
 				if errors.Is(err, context.Canceled) {
+					// to mark an unfinished process
 					fmt.Println("-- Canceled")
 				}
 				log.Fatalf("Failed to handle data file: %v", err)
 			}
-			fmt.Printf("-- %d rows\n", totalRows)
+			_, _ = fmt.Fprintf(os.Stderr, "Handled %d rows\n", totalRows)
 		case config.ModeSchema:
 			if err = handleSchemaFile(ctx, cfg, tableName, fileInfo.Path); err != nil {
 				log.Fatalf("Failed to handle schema file: %v", err)
 			}
 		}
 
-		fmt.Printf("-- Ended: %q\n", fileInfo.Path)
-		fmt.Println()
+		_, _ = fmt.Fprintf(os.Stderr, "Ended after %s.\n", time.Since(startedAt).Round(time.Second))
 	}
 }
 
@@ -119,7 +122,7 @@ func handleDataFile(ctx context.Context, cfg *config.Config, tableName string, f
 			}
 
 			fmt.Println(sql)
-			totalRows++
+			totalRows += len(items)
 		}
 
 		if err == io.EOF {
