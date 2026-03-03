@@ -5,15 +5,15 @@ import (
 	"strings"
 )
 
-type MySQLInsertBuilder struct {
+type MySQLUpsertBuilder struct {
 	dbSchema   string
 	table      string
 	primaryKey string
 	attrs      []string
 }
 
-func NewMySQLInsertBuilder(dbSchema string, tableName string, attrs []string) *MySQLInsertBuilder {
-	return &MySQLInsertBuilder{
+func NewMySQLUpsertBuilder(dbSchema string, tableName string, attrs []string) *MySQLUpsertBuilder {
+	return &MySQLUpsertBuilder{
 		dbSchema:   dbSchema,
 		table:      tableName,
 		primaryKey: resolvePrimaryKey(tableName),
@@ -21,7 +21,7 @@ func NewMySQLInsertBuilder(dbSchema string, tableName string, attrs []string) *M
 	}
 }
 
-func (b *MySQLInsertBuilder) Build(rows []map[string]string) (string, error) {
+func (b *MySQLUpsertBuilder) Build(rows []map[string]string) (string, error) {
 	if len(rows) == 0 {
 		return "", fmt.Errorf("no rows to build")
 	}
@@ -37,7 +37,7 @@ func (b *MySQLInsertBuilder) Build(rows []map[string]string) (string, error) {
 
 	if b.primaryKey != "" {
 		sb.WriteString(" ")
-		sb.WriteString(b.buildOnDuplicateKeyUpdate())
+		sb.WriteString(b.buildOnConflict())
 	}
 
 	sb.WriteString(";")
@@ -45,7 +45,7 @@ func (b *MySQLInsertBuilder) Build(rows []map[string]string) (string, error) {
 	return sb.String(), nil
 }
 
-func (b *MySQLInsertBuilder) buildValues(rows []map[string]string) (string, error) {
+func (b *MySQLUpsertBuilder) buildValues(rows []map[string]string) (string, error) {
 	var res []string
 
 	for _, row := range rows {
@@ -55,7 +55,7 @@ func (b *MySQLInsertBuilder) buildValues(rows []map[string]string) (string, erro
 		for i, attrName := range b.attrs {
 			// Convert boolean string values to integers for MySQL BOOLEAN columns
 			value := row[attrName]
-			
+
 			if resolveColumnName(attrName) == "isactive" {
 				value = convertBooleanToMySQL(value)
 			}
@@ -70,7 +70,7 @@ func (b *MySQLInsertBuilder) buildValues(rows []map[string]string) (string, erro
 	return strings.Join(res, ","), nil
 }
 
-func (b *MySQLInsertBuilder) buildColumns() string {
+func (b *MySQLUpsertBuilder) buildColumns() string {
 	columns := make([]string, len(b.attrs))
 	for i, attrName := range b.attrs {
 		columns[i] = escapeColumnNameMySQL(resolveColumnName(attrName))
@@ -78,7 +78,7 @@ func (b *MySQLInsertBuilder) buildColumns() string {
 	return strings.Join(columns, ",")
 }
 
-func (b *MySQLInsertBuilder) buildOnDuplicateKeyUpdate() string {
+func (b *MySQLUpsertBuilder) buildOnConflict() string {
 	var setters []string
 	for _, attrName := range b.attrs {
 		column := escapeColumnNameMySQL(resolveColumnName(attrName))

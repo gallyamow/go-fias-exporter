@@ -1,9 +1,9 @@
 package sqlbuilder
 
-type Builder interface {
+type ImportBuilder interface {
 	Build(rows []map[string]string) (string, error)
 }
 
-type SchemaBuilderInterface interface {
+type SchemaBuilder interface {
 	Build(data []byte) (string, error)
 }

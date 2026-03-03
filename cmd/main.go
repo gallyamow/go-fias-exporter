@@ -90,7 +90,7 @@ func handleDataFile(ctx context.Context, cfg *config.Config, tableName string, f
 	defer file.Close()
 
 	iterator := itemiterator.New(file)
-	var sqlBuilder sqlbuilder.Builder
+	var sqlBuilder sqlbuilder.ImportBuilder
 	totalRows := 0
 
 	for {
@@ -107,7 +107,7 @@ func handleDataFile(ctx context.Context, cfg *config.Config, tableName string, f
 		}
 
 		if sqlBuilder == nil {
-			sqlBuilder = resolveDataBuilder(cfg, tableName, items[0])
+			sqlBuilder = resolveImportBuilder(cfg, tableName, items[0])
 		}
 
 		if len(items) > 0 {
@@ -127,7 +127,7 @@ func handleDataFile(ctx context.Context, cfg *config.Config, tableName string, f
 }
 
 func handleSchemaFile(ctx context.Context, cfg *config.Config, tableName string, filePath string) error {
-	var sqlBuilder sqlbuilder.SchemaBuilderInterface
+	var sqlBuilder sqlbuilder.SchemaBuilder
 
 	switch cfg.DbType {
 	case config.DBPostgres:
@@ -152,7 +152,7 @@ func handleSchemaFile(ctx context.Context, cfg *config.Config, tableName string,
 	return nil
 }
 
-func resolveDataBuilder(cfg *config.Config, tableName string, item map[string]string) sqlbuilder.Builder {
+func resolveImportBuilder(cfg *config.Config, tableName string, item map[string]string) sqlbuilder.ImportBuilder {
 	attrs := sqlbuilder.ResolveAttrs(item)
 
 	switch cfg.Mode {
@@ -163,18 +163,18 @@ func resolveDataBuilder(cfg *config.Config, tableName string, item map[string]st
 		case config.DBMySQL:
 			return sqlbuilder.NewMySQLLoadDataBuilder(cfg.DbSchema, tableName, attrs)
 		default:
-			panic(fmt.Sprintf("unsupported database type: %s", cfg.DbType))
+			panic(fmt.Sprintf("unsupported mode: %s", cfg.DbType))
 		}
 	case config.ModeUpsert:
 		switch cfg.DbType {
 		case config.DBPostgres:
 			return sqlbuilder.NewPostgreSQLUpsertBuilder(cfg.DbSchema, tableName, attrs)
 		case config.DBMySQL:
-			return sqlbuilder.NewMySQLInsertBuilder(cfg.DbSchema, tableName, attrs)
+			return sqlbuilder.NewMySQLUpsertBuilder(cfg.DbSchema, tableName, attrs)
 		default:
 			panic(fmt.Sprintf("unsupported database type: %s", cfg.DbType))
 		}
 	default:
-		panic(fmt.Sprintf("failed to resolve builder for %q", cfg.Mode))
+		panic(fmt.Sprintf("failed to resolve import builder for %q", cfg.Mode))
 	}
 }

@@ -19,7 +19,7 @@ func TestMySQLInsertBuilder_Build(t *testing.T) {
 			},
 		}
 
-		builder := NewMySQLInsertBuilder("", "test_table", []string{"id", "name", "description"})
+		builder := NewMySQLUpsertBuilder("", "test_table", []string{"id", "name", "description"})
 		result, err := builder.Build(rows)
 		if err != nil {
 			t.Fatalf("Build() error = %v", err)
@@ -40,7 +40,7 @@ func TestMySQLInsertBuilder_Build(t *testing.T) {
 			},
 		}
 
-		builder := NewMySQLInsertBuilder("test_schema", "test_table", []string{"id", "name"})
+		builder := NewMySQLUpsertBuilder("test_schema", "test_table", []string{"id", "name"})
 		result, err := builder.Build(rows)
 		if err != nil {
 			t.Fatalf("Build() error = %v", err)
@@ -61,7 +61,7 @@ func TestMySQLInsertBuilder_Build(t *testing.T) {
 			},
 		}
 
-		builder := NewMySQLInsertBuilder("", "test_table", []string{"id", "name"})
+		builder := NewMySQLUpsertBuilder("", "test_table", []string{"id", "name"})
 		result, err := builder.Build(rows)
 		if err != nil {
 			t.Fatalf("Build() error = %v", err)
@@ -83,7 +83,7 @@ func TestMySQLInsertBuilder_Build(t *testing.T) {
 			},
 		}
 
-		builder := NewMySQLInsertBuilder("", "test_table", []string{"id", "name", "desc"})
+		builder := NewMySQLUpsertBuilder("", "test_table", []string{"id", "name", "desc"})
 		result, err := builder.Build(rows)
 		if err != nil {
 			t.Fatalf("Build() error = %v", err)
@@ -99,7 +99,7 @@ func TestMySQLInsertBuilder_Build(t *testing.T) {
 	t.Run("empty rows", func(t *testing.T) {
 		rows := []map[string]string{}
 
-		builder := NewMySQLInsertBuilder("", "test_table", []string{"id", "name"})
+		builder := NewMySQLUpsertBuilder("", "test_table", []string{"id", "name"})
 		_, err := builder.Build(rows)
 		if err == nil {
 			t.Fatal("Build() expected error for empty rows")
@@ -119,7 +119,7 @@ func TestMySQLInsertBuilder_Build(t *testing.T) {
 			},
 		}
 
-		builder := NewMySQLInsertBuilder("", "reestr_objects", []string{"objectid", "name"})
+		builder := NewMySQLUpsertBuilder("", "reestr_objects", []string{"objectid", "name"})
 		result, err := builder.Build(rows)
 		if err != nil {
 			t.Fatalf("Build() error = %v", err)
@@ -146,7 +146,7 @@ func TestMySQLInsertBuilder_buildValues(t *testing.T) {
 			},
 		}
 
-		builder := NewMySQLInsertBuilder("", "test_table", []string{"id", "name"})
+		builder := NewMySQLUpsertBuilder("", "test_table", []string{"id", "name"})
 		result, err := builder.buildValues(rows)
 		if err != nil {
 			t.Fatalf("buildValues() error = %v", err)
@@ -167,7 +167,7 @@ func TestMySQLInsertBuilder_buildValues(t *testing.T) {
 			},
 		}
 
-		builder := NewMySQLInsertBuilder("", "test_table", []string{"id", "name", "desc"})
+		builder := NewMySQLUpsertBuilder("", "test_table", []string{"id", "name", "desc"})
 		result, err := builder.buildValues(rows)
 		if err != nil {
 			t.Fatalf("buildValues() error = %v", err)
@@ -182,7 +182,7 @@ func TestMySQLInsertBuilder_buildValues(t *testing.T) {
 
 func TestMySQLInsertBuilder_buildColumns(t *testing.T) {
 	t.Run("basic columns", func(t *testing.T) {
-		builder := NewMySQLInsertBuilder("", "test_table", []string{"id", "name", "description"})
+		builder := NewMySQLUpsertBuilder("", "test_table", []string{"id", "name", "description"})
 		result := builder.buildColumns()
 
 		expected := "id,name,description"
@@ -192,7 +192,7 @@ func TestMySQLInsertBuilder_buildColumns(t *testing.T) {
 	})
 
 	t.Run("with reserved word", func(t *testing.T) {
-		builder := NewMySQLInsertBuilder("", "test_table", []string{"id", "desc"})
+		builder := NewMySQLUpsertBuilder("", "test_table", []string{"id", "desc"})
 		result := builder.buildColumns()
 
 		expected := "id,`desc`"
@@ -204,32 +204,32 @@ func TestMySQLInsertBuilder_buildColumns(t *testing.T) {
 
 func TestMySQLInsertBuilder_buildOnDuplicateKeyUpdate(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
-		builder := NewMySQLInsertBuilder("", "test_table", []string{"id", "name", "description"})
-		result := builder.buildOnDuplicateKeyUpdate()
+		builder := NewMySQLUpsertBuilder("", "test_table", []string{"id", "name", "description"})
+		result := builder.buildOnConflict()
 
 		expected := "ON DUPLICATE KEY UPDATE name=VALUES(name),description=VALUES(description)"
 		if result != expected {
-			t.Errorf("buildOnDuplicateKeyUpdate() result = %s, expected %s", result, expected)
+			t.Errorf("buildOnConflict() result = %s, expected %s", result, expected)
 		}
 	})
 
 	t.Run("single column", func(t *testing.T) {
-		builder := NewMySQLInsertBuilder("", "test_table", []string{"id", "name"})
-		result := builder.buildOnDuplicateKeyUpdate()
+		builder := NewMySQLUpsertBuilder("", "test_table", []string{"id", "name"})
+		result := builder.buildOnConflict()
 
 		expected := "ON DUPLICATE KEY UPDATE name=VALUES(name)"
 		if result != expected {
-			t.Errorf("buildOnDuplicateKeyUpdate() result = %s, expected %s", result, expected)
+			t.Errorf("buildOnConflict() result = %s, expected %s", result, expected)
 		}
 	})
 
 	t.Run("different primary key", func(t *testing.T) {
-		builder := NewMySQLInsertBuilder("", "reestr_objects", []string{"objectid", "name"})
-		result := builder.buildOnDuplicateKeyUpdate()
+		builder := NewMySQLUpsertBuilder("", "reestr_objects", []string{"objectid", "name"})
+		result := builder.buildOnConflict()
 
 		expected := "ON DUPLICATE KEY UPDATE name=VALUES(name)"
 		if result != expected {
-			t.Errorf("buildOnDuplicateKeyUpdate() result = %s, expected %s", result, expected)
+			t.Errorf("buildOnConflict() result = %s, expected %s", result, expected)
 		}
 	})
 }
