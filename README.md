@@ -134,7 +134,7 @@ echo 'SELECT COUNT(*) FROM addhouse_types;' | docker exec -i gar-mysql mysql -u 
 
 ## Примечания
 
-* Импортировался полный дамп, процесс подробно [описан](https://github.com/gallyamow/go-fias-exporter/issues/2)
+* Импортировался полный дамп, процесс подробно [описан](https://github.com/gallyamow/go-fias-exporter/issues/2), спасибо @Djoongaar
 * По умолчанию таблицы создаются без `PRIMARY KEY` - чтобы не пересчитывался индекс и `NOT NULL` -
   чтобы процесс импорта не прервался из-за ошибок в данных
 * Если используется `upsert`-режим (например для импорта дельты), то `PRIMARY KEY` должны быть заранее созданы.
