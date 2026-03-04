@@ -857,3 +857,19 @@ COMMENT ON COLUMN tmp.normative_docs.comment IS 'Комментарий';`
 		}
 	})
 }
+
+func TestPostgreSQLSchemaBuilder_BuildPrimaryKey(t *testing.T) {
+	t.Run("basic", func(t *testing.T) {
+		builder := NewPostgreSQLSchemaBuilder("", "addressobjects", false, false)
+
+		got, err := builder.BuildPrimaryKey()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		want := `ALTER TABLE addressobjects ADD PRIMARY KEY(id);`
+		if got != want {
+			t.Fatalf("got %s, want %s", got, want)
+		}
+	})
+}

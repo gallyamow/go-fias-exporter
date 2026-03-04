@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestMySQLInsertBuilder_Build(t *testing.T) {
+func TestMySQLUpsertBuilder_Build(t *testing.T) {
 	t.Run("basic insert", func(t *testing.T) {
 		rows := []map[string]string{
 			{
@@ -133,7 +133,7 @@ func TestMySQLInsertBuilder_Build(t *testing.T) {
 	})
 }
 
-func TestMySQLInsertBuilder_buildValues(t *testing.T) {
+func TestMySQLUpsertBuilder_buildValues(t *testing.T) {
 	t.Run("multiple rows", func(t *testing.T) {
 		rows := []map[string]string{
 			{
@@ -180,7 +180,7 @@ func TestMySQLInsertBuilder_buildValues(t *testing.T) {
 	})
 }
 
-func TestMySQLInsertBuilder_buildColumns(t *testing.T) {
+func TestMySQLUpsertBuilder_buildColumns(t *testing.T) {
 	t.Run("basic columns", func(t *testing.T) {
 		builder := NewMySQLUpsertBuilder("", "test_table", []string{"id", "name", "description"})
 		result := builder.buildColumns()
@@ -202,7 +202,7 @@ func TestMySQLInsertBuilder_buildColumns(t *testing.T) {
 	})
 }
 
-func TestMySQLInsertBuilder_buildOnDuplicateKeyUpdate(t *testing.T) {
+func TestMySQLUpsertBuilder_buildOnDuplicateKeyUpdate(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
 		builder := NewMySQLUpsertBuilder("", "test_table", []string{"id", "name", "description"})
 		result := builder.buildOnConflict()

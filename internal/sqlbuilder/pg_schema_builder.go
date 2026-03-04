@@ -1,7 +1,6 @@
 package sqlbuilder
 
 import (
-	"encoding/xml"
 	"fmt"
 	"strings"
 )
@@ -25,33 +24,17 @@ func NewPostgreSQLSchemaBuilder(dbSchema string, tableName string, ignoreRequire
 }
 
 func (b *PostgreSQLSchemaBuilder) Build(data []byte) (string, error) {
-	var schema schema
-	if err := xml.Unmarshal(data, &schema); err != nil {
+	attrs, descr, err := ResolveSchemaAttrs(b.table, data)
+	if err != nil {
 		return "", err
-	}
-
-	if len(schema.Element) == 0 {
-		return "", fmt.Errorf("invalid schema attrs for '%s'", b.table)
-	}
-
-	var attrs []attribute
-	var descr string
-
-	// (hardcoded)
-	if b.table == "normative_docs_kinds" || b.table == "normative_docs_types" {
-		attrs = schema.Element[1].ComplexType.Attributes
-		descr = schema.Element[0].ComplexType.Sequence.Elements[0].Annotation.Documentation
-	} else {
-		attrs = schema.Element[0].ComplexType.Sequence.Elements[0].ComplexType.Attributes
-		descr = schema.Element[0].Annotation.Documentation
-	}
-
-	if len(attrs) == 0 {
-		return "", fmt.Errorf("empty attrs for '%s'", b.table)
 	}
 
 	res := fmt.Sprintf("CREATE TABLE %s (\n%s\n);\n%s;\n%s", b.fullTable, b.buildColumns(attrs), b.buildTableComment(descr), b.buildColumnComments(attrs))
 	return res, nil
+}
+
+func (b *PostgreSQLSchemaBuilder) BuildPrimaryKey() (string, error) {
+	return fmt.Sprintf("ALTER TABLE %s ADD PRIMARY KEY(%s);", b.fullTable, b.primaryKey), nil
 }
 
 func (b *PostgreSQLSchemaBuilder) buildColumns(attrs []attribute) string {

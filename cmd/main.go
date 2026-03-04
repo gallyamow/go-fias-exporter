@@ -76,7 +76,7 @@ func main() {
 				log.Fatalf("Failed to handle data file: %v", err)
 			}
 			_, _ = fmt.Fprintf(os.Stderr, "Handled %d rows\n", totalRows)
-		case config.ModeSchema:
+		case config.ModeSchema, config.ModeKeys:
 			if err = handleSchemaFile(ctx, cfg, tableName, fileInfo.Path); err != nil {
 				log.Fatalf("Failed to handle schema file: %v", err)
 			}
@@ -148,7 +148,15 @@ func handleSchemaFile(ctx context.Context, cfg *config.Config, tableName string,
 		return err
 	}
 
-	sql, err := sqlBuilder.Build(data)
+	var sql string
+
+	switch cfg.Mode {
+	case config.ModeKeys:
+		sql, err = sqlBuilder.BuildPrimaryKey()
+	default:
+		sql, err = sqlBuilder.Build(data)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -167,8 +175,6 @@ func resolveImportBuilder(cfg *config.Config, tableName string, item map[string]
 			return sqlbuilder.NewPostgreSQLCopyBuilder(cfg.DbSchema, tableName, attrs)
 		case config.DBMySQL:
 			return sqlbuilder.NewMySQLLoadDataBuilder(cfg.DbSchema, tableName, attrs)
-		default:
-			panic(fmt.Sprintf("unsupported mode: %s", cfg.DbType))
 		}
 	case config.ModeUpsert:
 		switch cfg.DbType {
@@ -176,10 +182,7 @@ func resolveImportBuilder(cfg *config.Config, tableName string, item map[string]
 			return sqlbuilder.NewPostgreSQLUpsertBuilder(cfg.DbSchema, tableName, attrs)
 		case config.DBMySQL:
 			return sqlbuilder.NewMySQLUpsertBuilder(cfg.DbSchema, tableName, attrs)
-		default:
-			panic(fmt.Sprintf("unsupported database type: %s", cfg.DbType))
 		}
-	default:
-		panic(fmt.Sprintf("failed to resolve import builder for %q", cfg.Mode))
 	}
+	panic(fmt.Sprintf("failed to resolve import builder for %q", cfg.Mode))
 }

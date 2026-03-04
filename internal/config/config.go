@@ -62,6 +62,7 @@ func ParseFlags() (*Config, error) {
 		return nil, ErrorPathRequired
 	}
 
+	// совместимость со старой версией
 	if *mode == "copy" {
 		*mode = ModeBulk
 	}

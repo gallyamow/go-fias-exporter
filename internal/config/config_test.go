@@ -24,7 +24,7 @@ func TestParseFlags_Mode(t *testing.T) {
 	}
 }
 
-func TestParseFlags_CopyMode(t *testing.T) {
+func TestParseFlags_BulkMode(t *testing.T) {
 	resetFlags()
 	os.Args = []string{
 		"cmd",
@@ -45,9 +45,24 @@ func TestParseFlags_CopyMode(t *testing.T) {
 	if cfg.Mode != ModeBulk {
 		t.Fatalf("unexpected mode: %s", cfg.Mode)
 	}
+}
 
-	if cfg.BatchSize != 100 {
-		t.Fatalf("unexpected batch size: %d", cfg.BatchSize)
+func TestParseFlags_DeprecatedBulkMode(t *testing.T) {
+	resetFlags()
+	os.Args = []string{
+		"cmd",
+		"-mode=copy",
+		"-batch-size=100",
+		"/data/input",
+	}
+
+	cfg, err := ParseFlags()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if cfg.Mode != ModeBulk {
+		t.Fatalf("unexpected mode: %s", cfg.Mode)
 	}
 }
 
@@ -74,6 +89,25 @@ func TestParseFlags_InvalidMode(t *testing.T) {
 	_, err := ParseFlags()
 	if err == nil {
 		t.Fatalf("expected error, got nil")
+	}
+}
+
+func TestParseFlags_BatchSize(t *testing.T) {
+	resetFlags()
+	os.Args = []string{
+		"cmd",
+		"-mode=bulk",
+		"-batch-size=1100",
+		"/data/input",
+	}
+
+	cfg, err := ParseFlags()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if cfg.BatchSize != 1100 {
+		t.Fatalf("unexpected batch size: %d", cfg.BatchSize)
 	}
 }
 

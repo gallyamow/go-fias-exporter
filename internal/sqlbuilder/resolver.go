@@ -1,6 +1,7 @@
 package sqlbuilder
 
 import (
+	"encoding/xml"
 	"fmt"
 	"maps"
 	"path/filepath"
@@ -53,6 +54,35 @@ func ResolveAttrs(row map[string]string) []string {
 		res = append(res, k)
 	}
 	return res
+}
+
+func ResolveSchemaAttrs(tableName string, data []byte) ([]attribute, string, error) {
+	var schema schema
+	if err := xml.Unmarshal(data, &schema); err != nil {
+		return nil, "", err
+	}
+
+	if len(schema.Element) == 0 {
+		return nil, "", fmt.Errorf("invalid schema attrs for '%s'", tableName)
+	}
+
+	var attrs []attribute
+	var descr string
+
+	// (hardcoded)
+	if tableName == "normative_docs_kinds" || tableName == "normative_docs_types" {
+		attrs = schema.Element[1].ComplexType.Attributes
+		descr = schema.Element[0].ComplexType.Sequence.Elements[0].Annotation.Documentation
+	} else {
+		attrs = schema.Element[0].ComplexType.Sequence.Elements[0].ComplexType.Attributes
+		descr = schema.Element[0].Annotation.Documentation
+	}
+
+	if len(attrs) == 0 {
+		return nil, "", fmt.Errorf("empty attrs for '%s'", tableName)
+	}
+
+	return attrs, descr, nil
 }
 
 // resolveColumnName converts an attribute name into a safe SQL column identifier

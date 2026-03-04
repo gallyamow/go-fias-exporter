@@ -6,4 +6,5 @@ type ImportBuilder interface {
 
 type SchemaBuilder interface {
 	Build(data []byte) (string, error)
+	BuildPrimaryKey() (string, error)
 }
