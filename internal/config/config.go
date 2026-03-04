@@ -21,22 +21,24 @@ const (
 )
 
 type Config struct {
-	Path          string
-	Mode          string
-	DbType        string
-	DbSchema      string
-	BatchSize     int
-	IgnoreNotNull bool
+	Path             string
+	Mode             string
+	DbType           string
+	DbSchema         string
+	BatchSize        int
+	IgnoreRequired   bool
+	IgnorePrimaryKey bool
 }
 
 func (c *Config) String() string {
-	return fmt.Sprintf("Path: %s, Mode: %s, DbType: %s, DbSchema: %s, BatchSize: %d, IgnoreNotNull: %v",
+	return fmt.Sprintf("Path: %s, Mode: %s, DbType: %s, DbSchema: %s, BatchSize: %d, IgnoreRequired: %v, IgnorePrimaryKey: %v",
 		c.Path,
 		c.Mode,
 		c.DbType,
 		c.DbSchema,
 		c.BatchSize,
-		c.IgnoreNotNull,
+		c.IgnoreRequired,
+		c.IgnorePrimaryKey,
 	)
 }
 
@@ -45,7 +47,8 @@ func ParseFlags() (*Config, error) {
 	dbType := flag.String("db-type", DBPostgres, "database type: postgres|mysql")
 	dbSchema := flag.String("db-schema", "", "database dbSchema")
 	batchSize := flag.Int("batch-size", 1000000, "batch size")
-	ignoreNotNull := flag.Bool("ignore-not-null", false, "ignore NOT NULL when table created")
+	ignoreRequired := flag.Bool("ignore-required", true, "ignore NOT NULL in CREATE TABLE")
+	ignorePrimaryKey := flag.Bool("ignore-primary-key", true, "ignore PRIMARY KEY in CREATE TABLE")
 
 	flag.Parse()
 
@@ -71,12 +74,12 @@ func ParseFlags() (*Config, error) {
 	}
 
 	return &Config{
-		Path:          path,
-		Mode:          *mode,
-		DbType:        *dbType,
-		DbSchema:      *dbSchema,
-		BatchSize:     *batchSize,
-		IgnoreNotNull: *ignoreNotNull,
+		Path:           path,
+		Mode:           *mode,
+		DbType:         *dbType,
+		DbSchema:       *dbSchema,
+		BatchSize:      *batchSize,
+		IgnoreRequired: *ignoreRequired,
 	}, nil
 }
 

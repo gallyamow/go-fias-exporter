@@ -7,18 +7,18 @@ import (
 )
 
 type MySQLSchemaBuilder struct {
-	table         string
-	fullTable     string
-	primaryKey    string
-	ignoreNotNull bool
+	table          string
+	fullTable      string
+	primaryKey     string
+	ignoreRequired bool
 }
 
-func NewMySQLSchemaBuilder(dbSchema string, tableName string, ignoreNotNull bool) *MySQLSchemaBuilder {
+func NewMySQLSchemaBuilder(dbSchema string, tableName string, ignoreRequired bool) *MySQLSchemaBuilder {
 	return &MySQLSchemaBuilder{
-		table:         tableName,
-		fullTable:     buildFullTableName(dbSchema, tableName),
-		primaryKey:    resolvePrimaryKey(tableName),
-		ignoreNotNull: ignoreNotNull,
+		table:          tableName,
+		fullTable:      buildFullTableName(dbSchema, tableName),
+		primaryKey:     resolvePrimaryKey(tableName),
+		ignoreRequired: ignoreRequired,
 	}
 }
 
@@ -71,7 +71,7 @@ func (b *MySQLSchemaBuilder) buildColumn(attr attribute) string {
 
 	sb.WriteString(xsdTypeToMySQL(attr.Type))
 
-	if !b.ignoreNotNull {
+	if !b.ignoreRequired {
 		notNull := resolveNullability(b.table, columnName, attr)
 		if notNull != "" {
 			sb.WriteString(" " + notNull)

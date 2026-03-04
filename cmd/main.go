@@ -136,9 +136,9 @@ func handleSchemaFile(ctx context.Context, cfg *config.Config, tableName string,
 
 	switch cfg.DbType {
 	case config.DBPostgres:
-		sqlBuilder = sqlbuilder.NewPostgreSQLSchemaBuilder(cfg.DbSchema, tableName, cfg.IgnoreNotNull)
+		sqlBuilder = sqlbuilder.NewPostgreSQLSchemaBuilder(cfg.DbSchema, tableName, cfg.IgnoreRequired)
 	case config.DBMySQL:
-		sqlBuilder = sqlbuilder.NewMySQLSchemaBuilder(cfg.DbSchema, tableName, cfg.IgnoreNotNull)
+		sqlBuilder = sqlbuilder.NewMySQLSchemaBuilder(cfg.DbSchema, tableName, cfg.IgnoreRequired)
 	default:
 		return fmt.Errorf("unsupported database type: %s", cfg.DbType)
 	}

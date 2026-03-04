@@ -8,8 +8,10 @@
 
 - Поддержка трех режимов экспорта:
     - **schema** — генерация запросов на `CREATE TABLE`
-    - **copy** — генерация запросов на пакетный импорт с использованием `COPY FROM STDIN` (PostgreSQL) или `LOAD DATA LOCAL INFILE` (MySQL)
-    - **upsert** — генерация запросов добавление и обновление существующих данных через `INSERT … ON CONFLICT` (PostgreSQL) или `INSERT … ON DUPLICATE KEY UPDATE` (MySQL)
+    - **copy** — генерация запросов на пакетный импорт с использованием `COPY FROM STDIN` (PostgreSQL) или
+      `LOAD DATA LOCAL INFILE` (MySQL)
+    - **upsert** — генерация запросов добавление и обновление существующих данных через `INSERT … ON CONFLICT` (
+      PostgreSQL) или `INSERT … ON DUPLICATE KEY UPDATE` (MySQL)
 - Поддержка баз данных:
     - **PostgreSQL** (по умолчанию)
     - **MySQL**
@@ -36,7 +38,7 @@ fias-exporter [flags] <путь-к-выгрузке-ФИАС>
 | `--db-type`         | `postgres`   | Тип базы данных: `postgres` или `mysql`.                                                                                                                                        |
 | `--db-schema`       | `public`     | Целевая схема базы данных.                                                                                                                                                      |
 | `--batch-size`      | `1000000`    | Количество записей в одном batch.                                                                                                                                               |
-| `--ignore-not-null` | false        | Игнорировать ли обработку `NOT NULL` по `use="required"` при определении колонок.                                                                                               |
+| `--ignore-required` | true         | Добавлять ли `NOT NULL` для `use="required"` полей.                                                                                                                             |
 
 ## Пример
 
@@ -119,4 +121,4 @@ echo 'SELECT COUNT(*) FROM addhouse_types;' | docker exec -i gar-mysql mysql -u 
 ## Примечания
 
 * импортировался полный дамп, процесс подробно [описан](/issues/2)
-* `--ignore-not-null` нужен так как в `data-части` есть записи с пустыми колонками в полях с `use="required"`.
+* `--ignore-requried` нужен так как в `data-части` есть записи с пустыми колонками в полях с `use="required"`.

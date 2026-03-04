@@ -242,7 +242,7 @@ ALTER TABLE test_schema.test COMMENT = 'Test table';`
 	</xs:element>
 </xs:dbSchema>`
 
-		builder := NewMySQLSchemaBuilder("", "test", true) // ignoreNotNull = true
+		builder := NewMySQLSchemaBuilder("", "test", true) // ignoreRequired = true
 		result, err := builder.Build([]byte(xmlData))
 		if err != nil {
 			t.Fatalf("Build() error = %v", err)

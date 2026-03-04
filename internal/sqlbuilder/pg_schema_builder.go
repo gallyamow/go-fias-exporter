@@ -7,18 +7,18 @@ import (
 )
 
 type PostgreSQLSchemaBuilder struct {
-	table         string
-	fullTable     string
-	primaryKey    string
-	ignoreNotNull bool
+	table          string
+	fullTable      string
+	primaryKey     string
+	ignoreRequired bool
 }
 
-func NewPostgreSQLSchemaBuilder(dbSchema string, tableName string, ignoreNotNull bool) *PostgreSQLSchemaBuilder {
+func NewPostgreSQLSchemaBuilder(dbSchema string, tableName string, ignoreRequired bool) *PostgreSQLSchemaBuilder {
 	return &PostgreSQLSchemaBuilder{
-		table:         tableName,
-		fullTable:     buildFullTableName(dbSchema, tableName),
-		primaryKey:    resolvePrimaryKey(tableName),
-		ignoreNotNull: ignoreNotNull,
+		table:          tableName,
+		fullTable:      buildFullTableName(dbSchema, tableName),
+		primaryKey:     resolvePrimaryKey(tableName),
+		ignoreRequired: ignoreRequired,
 	}
 }
 
@@ -71,7 +71,7 @@ func (b *PostgreSQLSchemaBuilder) buildColumn(attr attribute) string {
 
 	sb.WriteString(xsdTypeToSQL(attr.Type))
 
-	if !b.ignoreNotNull {
+	if !b.ignoreRequired {
 		notNull := resolveNullability(b.table, columnName, attr)
 		if notNull != "" {
 			sb.WriteString(" " + notNull)
