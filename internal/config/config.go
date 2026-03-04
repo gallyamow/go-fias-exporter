@@ -74,12 +74,13 @@ func ParseFlags() (*Config, error) {
 	}
 
 	return &Config{
-		Path:           path,
-		Mode:           *mode,
-		DbType:         *dbType,
-		DbSchema:       *dbSchema,
-		BatchSize:      *batchSize,
-		IgnoreRequired: *ignoreRequired,
+		Path:             path,
+		Mode:             *mode,
+		DbType:           *dbType,
+		DbSchema:         *dbSchema,
+		BatchSize:        *batchSize,
+		IgnoreRequired:   *ignoreRequired,
+		IgnorePrimaryKey: *ignorePrimaryKey,
 	}, nil
 }
 

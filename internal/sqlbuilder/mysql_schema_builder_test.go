@@ -147,7 +147,7 @@ func TestMySQLSchemaBuilder_Build(t *testing.T) {
 	</xs:element>
 </xs:dbSchema>`
 
-		builder := NewMySQLSchemaBuilder("", "addressobjects", false)
+		builder := NewMySQLSchemaBuilder("", "addressobjects", false, false)
 		result, err := builder.Build([]byte(xmlData))
 		if err != nil {
 			t.Fatalf("Build() error = %v", err)
@@ -198,7 +198,7 @@ ALTER TABLE addressobjects COMMENT = 'Состав и структура фай�
 	</xs:element>
 </xs:dbSchema>`
 
-		builder := NewMySQLSchemaBuilder("test_schema", "test", false)
+		builder := NewMySQLSchemaBuilder("test_schema", "test", false, false)
 		result, err := builder.Build([]byte(xmlData))
 		if err != nil {
 			t.Fatalf("Build() error = %v", err)
@@ -214,7 +214,7 @@ ALTER TABLE test_schema.test COMMENT = 'Test table';`
 		}
 	})
 
-	t.Run("ignore not null", func(t *testing.T) {
+	t.Run("ignore_not_null", func(t *testing.T) {
 		xmlData := `<?xml version="1.0" encoding="utf-8"?>
 <xs:dbSchema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 	<xs:element name="TEST">
@@ -242,7 +242,7 @@ ALTER TABLE test_schema.test COMMENT = 'Test table';`
 	</xs:element>
 </xs:dbSchema>`
 
-		builder := NewMySQLSchemaBuilder("", "test", true) // ignoreRequired = true
+		builder := NewMySQLSchemaBuilder("", "test", true, false) // ignorePrimaryKey = true
 		result, err := builder.Build([]byte(xmlData))
 		if err != nil {
 			t.Fatalf("Build() error = %v", err)
@@ -250,6 +250,50 @@ ALTER TABLE test_schema.test COMMENT = 'Test table';`
 
 		expected := `CREATE TABLE test (
 	id VARCHAR(500) PRIMARY KEY,
+	name VARCHAR(500)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ALTER TABLE test COMMENT = 'Test table';`
+
+		if result != expected {
+			t.Errorf("Build() result =\n%s\n\nexpected =\n%s", result, expected)
+		}
+	})
+	t.Run("ignore_primary_key", func(t *testing.T) {
+		xmlData := `<?xml version="1.0" encoding="utf-8"?>
+<xs:dbSchema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="TEST">
+		<xs:annotation>
+			<xs:documentation>Test table</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="OBJECT">
+					<xs:complexType>
+						<xs:attribute name="ID" use="required" type="xs:string">
+							<xs:annotation>
+								<xs:documentation>Test ID</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="NAME" use="required" type="xs:string">
+							<xs:annotation>
+								<xs:documentation>Test Name</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:dbSchema>`
+
+		builder := NewMySQLSchemaBuilder("", "test", true, true) // ignorePrimaryKey = true
+		result, err := builder.Build([]byte(xmlData))
+		if err != nil {
+			t.Fatalf("Build() error = %v", err)
+		}
+
+		expected := `CREATE TABLE test (
+	id VARCHAR(500),
 	name VARCHAR(500)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ALTER TABLE test COMMENT = 'Test table';`

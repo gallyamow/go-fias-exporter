@@ -7,18 +7,20 @@ import (
 )
 
 type PostgreSQLSchemaBuilder struct {
-	table          string
-	fullTable      string
-	primaryKey     string
-	ignoreRequired bool
+	table            string
+	fullTable        string
+	primaryKey       string
+	ignoreRequired   bool
+	ignorePrimaryKey bool
 }
 
-func NewPostgreSQLSchemaBuilder(dbSchema string, tableName string, ignoreRequired bool) *PostgreSQLSchemaBuilder {
+func NewPostgreSQLSchemaBuilder(dbSchema string, tableName string, ignoreRequired bool, ignorePrimaryKey bool) *PostgreSQLSchemaBuilder {
 	return &PostgreSQLSchemaBuilder{
-		table:          tableName,
-		fullTable:      buildFullTableName(dbSchema, tableName),
-		primaryKey:     resolvePrimaryKey(tableName),
-		ignoreRequired: ignoreRequired,
+		table:            tableName,
+		fullTable:        buildFullTableName(dbSchema, tableName),
+		primaryKey:       resolvePrimaryKey(tableName),
+		ignoreRequired:   ignoreRequired,
+		ignorePrimaryKey: ignorePrimaryKey,
 	}
 }
 
@@ -78,7 +80,7 @@ func (b *PostgreSQLSchemaBuilder) buildColumn(attr attribute) string {
 		}
 	}
 
-	if columnName == b.primaryKey {
+	if !b.ignorePrimaryKey && columnName == b.primaryKey {
 		sb.WriteString(" PRIMARY KEY")
 	}
 

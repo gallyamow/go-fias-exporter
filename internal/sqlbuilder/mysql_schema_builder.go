@@ -7,18 +7,20 @@ import (
 )
 
 type MySQLSchemaBuilder struct {
-	table          string
-	fullTable      string
-	primaryKey     string
-	ignoreRequired bool
+	table            string
+	fullTable        string
+	primaryKey       string
+	ignoreRequired   bool
+	ignorePrimaryKey bool
 }
 
-func NewMySQLSchemaBuilder(dbSchema string, tableName string, ignoreRequired bool) *MySQLSchemaBuilder {
+func NewMySQLSchemaBuilder(dbSchema string, tableName string, ignoreRequired bool, ignorePrimaryKey bool) *MySQLSchemaBuilder {
 	return &MySQLSchemaBuilder{
-		table:          tableName,
-		fullTable:      buildFullTableName(dbSchema, tableName),
-		primaryKey:     resolvePrimaryKey(tableName),
-		ignoreRequired: ignoreRequired,
+		table:            tableName,
+		fullTable:        buildFullTableName(dbSchema, tableName),
+		primaryKey:       resolvePrimaryKey(tableName),
+		ignoreRequired:   ignoreRequired,
+		ignorePrimaryKey: ignorePrimaryKey,
 	}
 }
 
@@ -78,7 +80,7 @@ func (b *MySQLSchemaBuilder) buildColumn(attr attribute) string {
 		}
 	}
 
-	if columnName == b.primaryKey {
+	if !b.ignorePrimaryKey && columnName == b.primaryKey {
 		sb.WriteString(" PRIMARY KEY")
 	}
 
