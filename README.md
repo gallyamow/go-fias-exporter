@@ -118,8 +118,5 @@ echo 'SELECT COUNT(*) FROM addhouse_types;' | docker exec -i gar-mysql mysql -u 
 
 ## Примечания
 
-* импортировался дамп одного региона, результат положительный для PostgreSQL и MySQL
+* импортировался полный дамп, процесс подробно [описан](/issues/2)
 * `--ignore-not-null` нужен так как в `data-части` есть записи с пустыми колонками в полях с `use="required"`.
-* Для MySQL в режиме `copy` требуется включить `local_infile=1` для использования `LOAD DATA LOCAL INFILE`
-* MySQL использует `VARCHAR(255)` вместо `VARCHAR` без указания длины для совместимости
-* Для MySQL в режиме `upsert` используется синтаксис `ON DUPLICATE KEY UPDATE` вместо `ON CONFLICT` 
