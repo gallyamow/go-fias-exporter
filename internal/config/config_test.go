@@ -6,11 +6,29 @@ import (
 	"testing"
 )
 
-func TestParseFlags_CopyFromMode(t *testing.T) {
+func TestParseFlags_Mode(t *testing.T) {
 	resetFlags()
 	os.Args = []string{
 		"cmd",
-		"-mode=copy",
+		"-mode=keys",
+		"/data/input",
+	}
+
+	cfg, err := ParseFlags()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if cfg.Mode != ModeKeys {
+		t.Fatalf("unexpected mode: %s", cfg.Mode)
+	}
+}
+
+func TestParseFlags_CopyMode(t *testing.T) {
+	resetFlags()
+	os.Args = []string{
+		"cmd",
+		"-mode=bulk",
 		"-batch-size=100",
 		"/data/input",
 	}
@@ -24,48 +42,12 @@ func TestParseFlags_CopyFromMode(t *testing.T) {
 		t.Fatalf("unexpected path: %s", cfg.Path)
 	}
 
-	if cfg.Mode != ModeCopy {
+	if cfg.Mode != ModeBulk {
 		t.Fatalf("unexpected mode: %s", cfg.Mode)
 	}
 
 	if cfg.BatchSize != 100 {
 		t.Fatalf("unexpected batch size: %d", cfg.BatchSize)
-	}
-}
-
-func TestParseFlags_UpsertModeWithDB(t *testing.T) {
-	resetFlags()
-	os.Args = []string{
-		"cmd",
-		"-mode=upsert",
-		"/data/input",
-	}
-
-	cfg, err := ParseFlags()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if cfg.Mode != ModeUpsert {
-		t.Fatalf("unexpected mode: %s", cfg.Mode)
-	}
-}
-
-func TestParseFlags_SchemaModeWithDB(t *testing.T) {
-	resetFlags()
-	os.Args = []string{
-		"cmd",
-		"-mode=schema",
-		"/data/input",
-	}
-
-	cfg, err := ParseFlags()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if cfg.Mode != ModeSchema {
-		t.Fatalf("unexpected mode: %s", cfg.Mode)
 	}
 }
 

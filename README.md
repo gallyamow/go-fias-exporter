@@ -55,6 +55,7 @@ docker run --name gar \
 echo 'CREATE SCHEMA tmp;' | docker exec -i gar psql -U postgres
 
 # 2) Создание таблиц по схемам
+# (по умолчанию без PRIMARY KEY и NOT NULL)
 ./fias-exporter --db-type postgres --mode schema --db-schema tmp ./example/gar_schemas | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 
 # По какой-то причине этой таблицы нет в gar_schemas
@@ -69,7 +70,7 @@ echo 'CREATE TABLE tmp.addhouse_types (
 	isactive BOOLEAN NOT NULL
 );' | docker exec -i gar psql -U postgres
 
-# 3) Быстрый импорт данных в созданные таблицы
+# 3.1) Быстрый импорт данных в созданные таблицы
 ./fias-exporter --db-type postgres --mode copy --db-schema tmp ./example/gar_data | docker exec -i gar psql -U postgres -v ON_ERROR_STOP=1
 
 # Альтернативно: UPSERT
@@ -120,5 +121,8 @@ echo 'SELECT COUNT(*) FROM addhouse_types;' | docker exec -i gar-mysql mysql -u 
 
 ## Примечания
 
-* импортировался полный дамп, процесс подробно [описан](/issues/2)
+* Импортировался полный дамп, процесс подробно [описан](/issues/2)
+* По умолчанию таблицы создаются без `PRIMARY KEY` - чтобы не пересчитывался индекс и `NOT NULL` -
+  чтобы процесс импорта не прервался из-за ошибок в данных
+* Если используется `upsert`-режим (например для импорта дельты), то `PRIMARY KEY` должны быть заранее созданы.
 * `--ignore-requried` нужен так как в `data-части` есть записи с пустыми колонками в полях с `use="required"`.

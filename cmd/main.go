@@ -66,7 +66,7 @@ func main() {
 		_, _ = fmt.Fprintf(os.Stderr, "Started file %q (%s) to table %q at %q.\n", fileInfo.Path, humanize.Bytes(uint64(fileInfo.Size)), tableName, startedAt.Format(time.RFC3339))
 
 		switch cfg.Mode {
-		case config.ModeCopy, config.ModeUpsert:
+		case config.ModeBulk, config.ModeUpsert:
 			totalRows, err := handleDataFile(ctx, cfg, tableName, fileInfo.Path)
 			if err != nil && err != io.EOF {
 				if errors.Is(err, context.Canceled) {
@@ -161,7 +161,7 @@ func resolveImportBuilder(cfg *config.Config, tableName string, item map[string]
 	attrs := sqlbuilder.ResolveAttrs(item)
 
 	switch cfg.Mode {
-	case config.ModeCopy:
+	case config.ModeBulk:
 		switch cfg.DbType {
 		case config.DBPostgres:
 			return sqlbuilder.NewPostgreSQLCopyBuilder(cfg.DbSchema, tableName, attrs)

@@ -12,9 +12,10 @@ var (
 )
 
 const (
-	ModeCopy   = "copy"
+	ModeBulk   = "bulk"
 	ModeUpsert = "upsert"
 	ModeSchema = "schema"
+	ModeKeys   = "keys"
 
 	DBPostgres = "postgres"
 	DBMySQL    = "mysql"
@@ -43,7 +44,7 @@ func (c *Config) String() string {
 }
 
 func ParseFlags() (*Config, error) {
-	mode := flag.String("mode", ModeCopy, "mode create|copy|upsert")
+	mode := flag.String("mode", ModeBulk, "mode create|bulk|upsert|keys")
 	dbType := flag.String("db-type", DBPostgres, "database type: postgres|mysql")
 	dbSchema := flag.String("db-schema", "", "database dbSchema")
 	batchSize := flag.Int("batch-size", 1000000, "batch size")
@@ -61,7 +62,11 @@ func ParseFlags() (*Config, error) {
 		return nil, ErrorPathRequired
 	}
 
-	if *mode != ModeCopy && *mode != ModeUpsert && *mode != ModeSchema {
+	if *mode == "copy" {
+		*mode = ModeBulk
+	}
+
+	if *mode != ModeBulk && *mode != ModeUpsert && *mode != ModeSchema && *mode != ModeKeys {
 		return nil, fmt.Errorf("invalid mode '%s'", *mode)
 	}
 
