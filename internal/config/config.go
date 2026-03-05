@@ -1,14 +1,11 @@
 package config
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
-)
 
-var (
-	ErrorPathRequired = errors.New("path is required")
+	"github.com/gallyamow/go-fias-exporter/internal/errors"
 )
 
 const (
@@ -54,12 +51,12 @@ func ParseFlags() (*Config, error) {
 	flag.Parse()
 
 	if flag.NArg() < 1 {
-		return nil, ErrorPathRequired
+		return nil, errors.ErrPathRequired
 	}
 
 	path := flag.Arg(0)
 	if path == "" {
-		return nil, ErrorPathRequired
+		return nil, errors.ErrPathRequired
 	}
 
 	// совместимость со старой версией
@@ -68,15 +65,15 @@ func ParseFlags() (*Config, error) {
 	}
 
 	if *mode != ModeBulk && *mode != ModeUpsert && *mode != ModeSchema && *mode != ModeKeys {
-		return nil, fmt.Errorf("invalid mode '%s'", *mode)
+		return nil, errors.ErrInvalidMode
 	}
 
 	if *dbType != DBPostgres && *dbType != DBMySQL {
-		return nil, fmt.Errorf("invalid db-type '%s'", *dbType)
+		return nil, errors.ErrInvalidDBType
 	}
 
 	if *batchSize <= 0 {
-		return nil, fmt.Errorf("batch-size must be > 0")
+		return nil, errors.ErrInvalidBatchSize
 	}
 
 	return &Config{

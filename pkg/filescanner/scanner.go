@@ -83,13 +83,11 @@ func isFileExcluded(info fs.FileInfo, filter Filter) bool {
 	// extension
 	ext := strings.ToLower(filepath.Ext(info.Name()))
 
-	if ext != "" {
-		if len(filter.IncludeExts) == 0 && !slices.Contains(filter.IncludeExts, ext) {
-			return true
-		}
-		if slices.Contains(filter.ExcludeExts, ext) {
-			return true
-		}
+	if len(filter.IncludeExts) != 0 && !slices.Contains(filter.IncludeExts, ext) {
+		return true
+	}
+	if slices.Contains(filter.ExcludeExts, ext) {
+		return true
 	}
 
 	return false
@@ -98,7 +96,7 @@ func isFileExcluded(info fs.FileInfo, filter Filter) bool {
 func isDirExcluded(d fs.DirEntry, filter Filter) bool {
 	dir := strings.ToLower(d.Name())
 
-	if len(filter.IncludeDirs) > 0 && !slices.Contains(filter.IncludeDirs, dir) {
+	if len(filter.IncludeDirs) != 0 && !slices.Contains(filter.IncludeDirs, dir) {
 		return true
 	}
 

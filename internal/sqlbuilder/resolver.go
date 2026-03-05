@@ -7,21 +7,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-)
 
-// these values have some differences in building
-const (
-	TableRoomsParams      = "rooms_params"
-	TableCarplacesParams  = "carplaces_params"
-	TableAddrObjParams    = "addr_obj_params"
-	TableApartmentsParams = "apartments_params"
-	TableHousesParams     = "houses_params"
-	TableSteadsParams     = "steads_params"
-	TableChangeHistory    = "change_history"
-	TableReestrObjects    = "reestr_objects"
-	TableObjectLevels     = "object_levels"
-	TableNormativeDocs    = "normative_docs"
-	TableSteads           = "steads"
+	"github.com/gallyamow/go-fias-exporter/internal/config"
 )
 
 // ResolveTableName resolves table name from filename.
@@ -38,14 +25,8 @@ func ResolveTableName(filename string) (string, error) {
 	}
 
 	tableName := strings.ToLower(m[1])
-
-	switch tableName {
-	// (hardcoded)
-	case TableRoomsParams, TableCarplacesParams, TableAddrObjParams, TableApartmentsParams, TableHousesParams, TableSteadsParams:
-		return "param", nil
-	default:
-		return tableName, nil
-	}
+	schemaConfig := config.DefaultSchemaConfig()
+	return schemaConfig.GetTableName(tableName), nil
 }
 
 func ResolveAttrs(row map[string]string) []string {
@@ -94,28 +75,13 @@ func resolveColumnName(attrName string) string {
 
 // resolvePrimaryKey resolves primary key by table name.
 func resolvePrimaryKey(tableName string) string {
-	// (hardcoded)
-	switch tableName {
-	case TableChangeHistory:
-		return "changeid"
-	case TableReestrObjects:
-		return "objectid"
-	case TableObjectLevels:
-		return "level"
-	}
-	return "id"
+	schemaConfig := config.DefaultSchemaConfig()
+	return schemaConfig.GetPrimaryKey(tableName)
 }
 
 func resolveNullability(tableName string, columnName string, attr attribute) string {
-	// (hardcoded)
-	if tableName == TableNormativeDocs && columnName == "name" {
-		// example: /63_sql/AS_NORMATIVE_DOCS_20260127_29897f0f-87b4-43b9-bea9-54152f80d42f.sql:493710: ERROR:  null value in column "name" of relation "normative_docs" violates not-null constraint
-		return ""
-	}
-
-	// example: ERROR:  null value in column "number" of relation "steads" violates not-null constraint
-	if tableName == TableSteads && columnName == "number" {
-		// example: /63_sql/AS_NORMATIVE_DOCS_20260127_29897f0f-87b4-43b9-bea9-54152f80d42f.sql:493710: ERROR:  null value in column "name" of relation "normative_docs" violates not-null constraint
+	schemaConfig := config.DefaultSchemaConfig()
+	if schemaConfig.ShouldBeNull(tableName, columnName) {
 		return ""
 	}
 

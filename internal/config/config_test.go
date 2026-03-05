@@ -4,6 +4,8 @@ import (
 	"errors"
 	"os"
 	"testing"
+
+	apperrors "github.com/gallyamow/go-fias-exporter/internal/errors"
 )
 
 func TestParseFlags_Mode(t *testing.T) {
@@ -73,8 +75,8 @@ func TestParseFlags_PathRequired(t *testing.T) {
 	}
 
 	_, err := ParseFlags()
-	if !errors.Is(err, ErrorPathRequired) {
-		t.Fatalf("expected ErrorPathRequired, got %v", err)
+	if !errors.Is(err, apperrors.ErrPathRequired) {
+		t.Fatalf("expected ErrPathRequired, got %v", err)
 	}
 }
 
