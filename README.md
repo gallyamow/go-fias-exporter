@@ -134,10 +134,13 @@ echo 'SELECT COUNT(*) FROM addhouse_types;' | docker exec -i gar-mysql mysql -u 
 
 ## Примечания
 
-* Импортировался полный дамп, процесс подробно [описан](https://github.com/gallyamow/go-fias-exporter/issues/2), спасибо [Djoongaar](https://github.com/Djoongaar)
+* Импортировался полный дамп, процесс подробно [описан](https://github.com/gallyamow/go-fias-exporter/issues/2),
+  спасибо [Djoongaar](https://github.com/Djoongaar)
 * По умолчанию таблицы создаются без `PRIMARY KEY` - чтобы не пересчитывался индекс и `NOT NULL` -
   чтобы процесс импорта не прервался из-за ошибок в данных
 * Если используется `upsert`-режим (например для импорта дельты), то `PRIMARY KEY` должны быть заранее созданы.
 * `--ignore-requried` нужен так как в `data-части` есть записи с пустыми колонками в полях с `use="required"`.
 * В ходе работы в stderr будет выводиться статистика и вывод от клиента БД
 * Процесс лучше запускать с остановкой на ошибках (пример для psql ON_ERROR_STOP=1)
+* У "Чувашская Республика" в addr_obj.name "Чувашская Республика -", addr_obj.typename указано "Чувашия", у других
+  республик - "Респ" - ее обычно приходится обработать отдельно.
