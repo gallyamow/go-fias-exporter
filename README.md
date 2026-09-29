@@ -24,7 +24,7 @@
 ## Установка
 
 ```shell
-go get -tool github.com/gallyamow/fias-exporter/go-fias-exporter@latest
+go install github.com/gallyamow/go-fias-exporter/cmd/fias-exporter@latest
 ```
 
 ## Использование

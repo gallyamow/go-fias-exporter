@@ -26,7 +26,7 @@ build-darwin-arm64:
 
 run:
 	@echo "Running $(APP_NAME) version $(VERSION)"
-	go run -ldflags '$(LDFLAGS)' .
+	go run -ldflags '$(LDFLAGS)' $(APP_MAIN)
 
 clean:
 	rm -f $(APP_NAME) $(APP_NAME)-linux-amd64 $(APP_NAME)-darwin-amd64 $(APP_NAME)-darwin-arm64
