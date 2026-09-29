@@ -24,8 +24,7 @@
 ## Установка
 
 ```shell
-# (для linux можно просто скачать из releases)
-make build
+go get -tool github.com/gallyamow/fias-exporter/go-fias-exporter@latest
 ```
 
 ## Использование
@@ -116,7 +115,7 @@ echo 'CREATE TABLE addhouse_types (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;' | docker exec -i gar-mysql mysql -u root gar
 
 # 3) Быстрый импорт данных в созданные таблицы
-# TODO: пока не работает
+# Пока не работает
 # echo 'SET GLOBAL local_infile = 1;' | docker exec -i gar-mysql mysql -u root
 # ./fias-exporter --db-type mysql --mode bulk ./example/gar_data | docker exec -i gar-mysql mysql -u root gar --local-infile=1
 

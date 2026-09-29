@@ -1,5 +1,5 @@
 APP_NAME := fias-exporter
-APP_MAIN := ./cmd/main.go
+APP_MAIN := ./cmd/fias-exporter/main.go
 VERSION := $(shell git describe --tags --always --dirty)
 LDFLAGS := -X "main.version=$(VERSION)"
 
