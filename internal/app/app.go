@@ -27,8 +27,6 @@ func New(cfg *config.Config) *Application {
 }
 
 func (a *Application) Run(ctx context.Context) error {
-	a.printHeader()
-
 	var ext string
 
 	switch a.cfg.Mode {
@@ -58,15 +56,6 @@ func (a *Application) Run(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func (a *Application) printHeader() {
-	fmt.Println("-- >>>")
-	fmt.Printf("-- Version: %s\n", "unknown")
-	fmt.Printf("-- %s\n", a.cfg)
-	fmt.Printf("-- Started at: %s\n", time.Now())
-	fmt.Println("-- <<<")
-	fmt.Println()
 }
 
 func (a *Application) processFile(ctx context.Context, fileInfo model.FileInfo) error {
