@@ -1,6 +1,6 @@
 APP_NAME := fias-exporter
-APP_MAIN := ./cmd/fias-exporter/main.go
-VERSION := $(shell git describe --tags --always --dirty)
+APP_MAIN := ./cmd/fias-exporter
+VERSION ?= $(shell git describe --tags --always --dirty)
 LDFLAGS := -X "main.Version=$(VERSION)"
 
 .PHONY: build run clean test lint version
